@@ -1,9 +1,6 @@
 {
   "watch": ["src"],
-  "ext": "ts",
-  "ignore": ["src/**/*.spec.ts"],
-  "exec": "npx ts-node ./src/app.ts",
-  "execMap": {
-    "ts": "ts-node"
-  }
+  "ext": "js",
+  "ignore": ["src/**/*.test.js"],
+  "exec": "node src/app.js"
 }
