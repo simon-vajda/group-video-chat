@@ -1,10 +1,25 @@
 import CallDemo from './CallDemo';
+import { MantineProvider } from '@mantine/core';
+import CallPage from './components/CallPage';
 
 function App() {
   return (
-    <div>
-      <CallDemo />
-    </div>
+    <MantineProvider
+      withGlobalStyles
+      withNormalizeCSS
+      theme={{
+        colorScheme: 'dark',
+        components: {
+          Button: {
+            defaultProps: {
+              radius: 'xl',
+            },
+          },
+        },
+      }}
+    >
+      <CallPage />
+    </MantineProvider>
   );
 }
 

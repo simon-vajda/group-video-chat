@@ -19,6 +19,8 @@ class Peer {
 
     this.connection.onnegotiationneeded = () => this.onNegotiationNeeded();
     this.connection.onicecandidate = (e) => this.onIceCandidate(e);
+    this.connection.onconnectionstatechange = () =>
+      this.onConnectionStateChange();
 
     this.socket.on('offer', (e) => this.onOfferReceived(e));
     this.socket.on('answer', (e) => this.onAnswerReceived(e));
@@ -30,9 +32,9 @@ class Peer {
       this.makingOffer = true;
       await this.connection.setLocalDescription();
       this.socket.emit('offer', this.connection.localDescription);
-      console.log('sending offer');
+      console.log('Sending offer');
     } catch (err) {
-      console.error(err);
+      console.error('Send offer error', err);
     } finally {
       this.makingOffer = false;
     }
@@ -45,7 +47,12 @@ class Peer {
   onIceCandidate(event: RTCPeerConnectionIceEvent) {
     if (event.candidate) {
       this.socket.emit('icecandidate', event.candidate);
+      console.log('Sending candidate', event.candidate);
     }
+  }
+
+  onConnectionStateChange() {
+    console.log('Connection state: ', this.connection.connectionState);
   }
 
   async onOfferReceived(offer: RTCSessionDescriptionInit) {
@@ -61,15 +68,21 @@ class Peer {
     // );
     await this.connection.setLocalDescription(answer);
     this.socket.emit('answer', answer);
-    console.log('sending answer', answer);
+    console.log('Sending answer', answer);
   }
 
   async onAnswerReceived(answer: RTCSessionDescriptionInit) {
     await this.connection.setRemoteDescription(answer);
+    console.log('Answer received', answer);
   }
 
   async onIceCandidateReceived(candidate: RTCIceCandidate) {
-    await this.connection.addIceCandidate(candidate);
+    try {
+      await this.connection.addIceCandidate(candidate);
+      console.log('Candidate received', candidate);
+    } catch (err) {
+      console.error('Candidate received error', candidate);
+    }
   }
 }
 
