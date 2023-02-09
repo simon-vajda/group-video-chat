@@ -19,8 +19,8 @@ class Room {
   }
 
   onTrack(event, peer) {
-    logger.info(
-      `Track id: ${event.track.id}, streamId: ${event.streams[0].id} from peer: ${peer.id}`,
+    logger.trace(
+      `Track ${event.track.kind}, streamId: ${event.streams[0].id} from peer: ${peer.id}`,
     );
 
     const found = this.streams.get(peer.id);
@@ -47,7 +47,10 @@ class Room {
 
   onDisconnect(peer) {
     logger.info(`Peer disconnected: ${peer.id}`);
-    peer.socket.broadcast.emit('peer-disconnected', peer.id);
+    peer.socket.broadcast.emit(
+      'peer-disconnected',
+      this.streams.get(peer.id)?.id,
+    );
     peer.connection.close();
     this.peers.delete(peer.id);
     this.streams.delete(peer.id);
