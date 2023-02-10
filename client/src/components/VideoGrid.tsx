@@ -87,7 +87,13 @@ function VideoGrid({ streams, localStream, sx }: VideoGridProps) {
         }}
       >
         {streams.map((stream, ind) => (
-          <Grid.Col key={ind} {...getGridColSize()}>
+          <Grid.Col
+            key={ind}
+            {...getGridColSize()}
+            style={{
+              transition: 'all 0.3s ease',
+            }}
+          >
             <video
               key={ind}
               autoPlay
