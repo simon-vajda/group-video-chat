@@ -15,8 +15,6 @@ class Peer {
     this.connection = new wrtc.RTCPeerConnection(RTCConfig);
     /** @type {Socket} */
     this.socket = socket;
-    /** @type {Set<string>} */
-    this.connectedTo = new Set();
     /** @type {boolean} */
     this.makingOffer = false;
 

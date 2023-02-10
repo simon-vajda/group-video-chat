@@ -6,6 +6,6 @@ const room = new Room();
 
 export function handleConnection(socket) {
   const peer = new Peer(socket);
-  logger.info(`Peer connected: ${this.id}`);
+  logger.info(`Peer connected: ${peer.id}`);
   room.addPeer(peer);
 }

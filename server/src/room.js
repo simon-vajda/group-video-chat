@@ -18,31 +18,28 @@ class Room {
     peer.socket.on('disconnect', () => this.onDisconnect(peer));
   }
 
+  /**
+   * @param {RTCTrackEvent} event
+   * @param {Peer} peer
+   */
   onTrack(event, peer) {
     logger.trace(
       `Track ${event.track.kind}, streamId: ${event.streams[0].id} from peer: ${peer.id}`,
     );
 
-    const found = this.streams.get(peer.id);
     this.streams.set(peer.id, event.streams[0]);
 
-    if (found) {
-      this.peers.forEach((p) => {
-        this.streams.forEach((stream, key) => {
-          if (p.id === key) return;
-          if (p.connectedTo.has(key)) return;
+    this.peers.forEach((p) => {
+      this.streams.forEach((stream, key) => {
+        if (p.id === key) return;
 
-          try {
-            stream.getTracks().forEach((track) => {
-              p.connection.addTrack(track, stream);
-            });
-            p.connectedTo.add(key);
-          } catch (err) {
-            logger.error(err);
-          }
-        });
+        try {
+          stream.getTracks().forEach((track) => {
+            p.connection.addTrack(track, stream);
+          });
+        } catch (err) {}
       });
-    }
+    });
   }
 
   onDisconnect(peer) {

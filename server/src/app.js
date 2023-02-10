@@ -38,13 +38,12 @@ fastify.register(fastifyStatic, {
 });
 
 process.on('uncaughtException', (err) =>
-  logger.error(err.code, 'node process uncaughtException'),
+  logger.warn(err, 'node process uncaughtException'),
 );
 fastify.server.on('clientError', (err, socket) => {
   if (err.code === 'ECONNRESET' || !socket.writable) {
     socket.end('HTTP/2 400 Bad Request\n');
   }
-  logger.error(err.code);
 });
 
 fastify.ready().then(() => {
