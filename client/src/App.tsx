@@ -1,6 +1,8 @@
 import CallDemo from './CallDemo';
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider, MantineTheme } from '@mantine/core';
 import CallPage from './components/CallPage';
+import JoinScreen from './components/JoinScreen';
+import { NotificationsProvider } from '@mantine/notifications';
 
 function App() {
   return (
@@ -15,10 +17,30 @@ function App() {
               radius: 'xl',
             },
           },
+          Input: {
+            defaultProps: {
+              radius: 'xl',
+            },
+          },
+          Container: {
+            defaultProps: {
+              size: 'xl',
+              py: 'md',
+            },
+          },
+          Paper: {
+            styles: (theme: MantineTheme) => ({
+              root: {
+                backgroundColor: theme.colors.dark[8],
+              },
+            }),
+          },
         },
       }}
     >
-      <CallPage />
+      <NotificationsProvider>
+        <JoinScreen />
+      </NotificationsProvider>
     </MantineProvider>
   );
 }

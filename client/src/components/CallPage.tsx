@@ -87,7 +87,6 @@ function CallPage() {
   return (
     <Container
       fluid
-      py="md"
       sx={{
         display: 'flex',
         flexDirection: 'column',
