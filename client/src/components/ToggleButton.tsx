@@ -6,15 +6,12 @@ interface Props {
   onClick: (turnedOn: boolean) => void;
   onIcon: JSX.Element;
   offIcon: JSX.Element;
+  value: boolean;
 }
 
-function ToggleButton({ onClick, onIcon, offIcon }: Props) {
-  const [turnedOn, setTurnedOn] = useState(true);
-
+function ToggleButton({ onClick, onIcon, offIcon, value }: Props) {
   const handleClick = () => {
-    const value = !turnedOn;
-    setTurnedOn(value);
-    onClick(value);
+    onClick(!value);
   };
 
   return (
@@ -22,10 +19,10 @@ function ToggleButton({ onClick, onIcon, offIcon }: Props) {
       size="xl"
       radius="xl"
       variant="filled"
-      color={turnedOn ? 'gray' : 'gray'}
+      color={value ? 'gray' : 'gray'}
       onClick={handleClick}
     >
-      {turnedOn ? onIcon : offIcon}
+      {value ? onIcon : offIcon}
     </ActionIcon>
   );
 }

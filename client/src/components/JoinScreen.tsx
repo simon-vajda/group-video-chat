@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   AspectRatio,
   Button,
   Center,
@@ -20,18 +21,50 @@ import {
   TbVideoOff,
   TbUserCircle,
   TbX,
+  TbSettings,
 } from 'react-icons/tb';
 import { showNotification } from '@mantine/notifications';
+import { useSelector } from 'react-redux/es/exports';
+import {
+  selectUserMedia,
+  setAudioEnabled,
+  setVideoEnabled,
+  toggleAudio,
+  toggleVideo,
+} from '../state/userMediaSlice';
+import { useDispatch } from 'react-redux/es/hooks/useDispatch';
+import { setUsername } from '../state/userSlice';
 
 function JoinScreen() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(true);
-  const [localStream, setLocalStream] = useState<MediaStream>();
-  const haveVideo = localStream && localStream.getVideoTracks().length > 0;
+  const [localStream, setLocalStream] = useState<MediaStream>(
+    new MediaStream(),
+  );
+  const hasVideo = localStream.getVideoTracks().length > 0;
 
-  const loadUserMedia = async (constraints: MediaStreamConstraints) => {
+  const dispatch = useDispatch();
+  const userMedia = useSelector(selectUserMedia);
+
+  const loadUserMedia = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+
+      if (!userMedia.audioEnabled) {
+        stream.getAudioTracks().forEach((track) => {
+          track.enabled = false;
+        });
+      }
+
+      if (!userMedia.videoEnabled) {
+        stream.getVideoTracks().forEach((track) => {
+          track.enabled = false;
+        });
+      }
+
       setLocalStream(stream);
     } catch (err) {
       showNotification({
@@ -40,24 +73,45 @@ function JoinScreen() {
         color: 'red',
         icon: <TbX size={24} />,
       });
+      dispatch(setAudioEnabled(false));
+      dispatch(setVideoEnabled(false));
     }
   };
 
   useEffect(() => {
-    loadUserMedia({ audio: false, video: true });
+    loadUserMedia();
+
     setTimeout(() => {
       setLoading(false);
     }, 3000);
+
+    return () => {
+      console.log('unmounting', localStream.getTracks());
+      // localStream.getTracks().forEach((track) => {
+      //   track.stop();
+      //   console.log('track stopped');
+      // });
+    };
   }, []);
 
-  const handleAudioToggle = (turnedOn: boolean) => {};
+  useEffect(() => {
+    localStream.getVideoTracks().forEach((track) => {
+      track.enabled = userMedia.videoEnabled;
+    });
+  }, [userMedia.videoEnabled]);
+
+  useEffect(() => {
+    localStream.getAudioTracks().forEach((track) => {
+      track.enabled = userMedia.audioEnabled;
+    });
+  }, [userMedia.audioEnabled]);
+
+  const handleAudioToggle = (turnedOn: boolean) => {
+    dispatch(toggleAudio());
+  };
 
   const handleVideoToggle = (turnedOn: boolean) => {
-    if (turnedOn) {
-      loadUserMedia({ audio: true, video: true });
-    } else {
-      localStream?.getVideoTracks().forEach((track) => track.stop());
-    }
+    dispatch(toggleVideo());
   };
 
   const previewVideo = useMemo(
@@ -83,12 +137,16 @@ function JoinScreen() {
     [localStream],
   );
 
+  const joinRoom = () => {
+    dispatch(setUsername(name));
+  };
+
   return (
     <Container size="sm" h="100%">
       <Stack h="100%" justify="center" spacing={40}>
         <Stack spacing="sm">
           <AspectRatio ratio={16 / 9}>
-            {haveVideo ? (
+            {userMedia.videoEnabled && hasVideo ? (
               previewVideo
             ) : (
               <Paper w="100%" h="100%">
@@ -106,12 +164,17 @@ function JoinScreen() {
               onIcon={<TbMicrophone size={24} />}
               offIcon={<TbMicrophoneOff size={24} />}
               onClick={handleAudioToggle}
+              value={userMedia.audioEnabled}
             />
             <ToggleButton
               onIcon={<TbVideo size={24} />}
               offIcon={<TbVideoOff size={24} />}
               onClick={handleVideoToggle}
+              value={userMedia.videoEnabled}
             />
+            <ActionIcon size="xl" radius="xl" variant="filled">
+              <TbSettings size={24} />
+            </ActionIcon>
           </Group>
         </Stack>
         <Transition mounted={loading} transition="pop" timingFunction="ease">
@@ -123,18 +186,20 @@ function JoinScreen() {
         </Transition>
         <Transition mounted={!loading} transition="pop" timingFunction="ease">
           {(styles) => (
-            <Stack style={styles}>
-              <TextInput
-                placeholder="Your name"
-                onChange={(e) => setName(e.target.value)}
-                value={name}
-                icon={<TbUserCircle size={24} />}
-                size="md"
-              />
-              <Button disabled={name.length === 0} size="md">
-                Join
-              </Button>
-            </Stack>
+            <form onSubmit={joinRoom} style={styles}>
+              <Stack>
+                <TextInput
+                  placeholder="Your name"
+                  onChange={(e) => setName(e.target.value)}
+                  value={name}
+                  icon={<TbUserCircle size={24} />}
+                  size="md"
+                />
+                <Button disabled={name.length === 0} size="md" type="submit">
+                  Join
+                </Button>
+              </Stack>
+            </form>
           )}
         </Transition>
       </Stack>

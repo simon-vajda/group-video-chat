@@ -1,5 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { ActionIcon, Button, Container, Group } from '@mantine/core';
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Center,
+  Container,
+  Group,
+  Loader,
+  Paper,
+} from '@mantine/core';
 import { useEffect, useState } from 'react';
 import {
   TbMicrophone,
@@ -8,18 +17,30 @@ import {
   TbVideoOff,
   TbPhoneX,
 } from 'react-icons/tb';
+import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import Peer from '../peer';
+import {
+  selectUserMedia,
+  setAudioEnabled,
+  toggleAudio,
+  toggleVideo,
+} from '../state/userMediaSlice';
+import { setUsername } from '../state/userSlice';
 import VideoGrid from './VideoGrid';
 
 // const socket = io();
-const socket = io('http://localhost:5000');
+// const socket = io('http://localhost:5000');
 
 function CallPage() {
-  const [isVideoOn, setIsVideoOn] = useState(true);
-  const [isAudioOn, setIsAudioOn] = useState(true);
-  const [localStream, setLocalStream] = useState<MediaStream>();
+  const [localStream, setLocalStream] = useState<MediaStream>(
+    new MediaStream(),
+  );
   const [streams, setStreams] = useState<MediaStream[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const dispatch = useDispatch();
+  const userMedia = useSelector(selectUserMedia);
 
   async function initMedia(pc: RTCPeerConnection) {
     navigator.mediaDevices
@@ -34,10 +55,12 @@ function CallPage() {
         });
         setLocalStream(stream);
         setStreams([stream]);
+        setLoading(false);
       });
   }
 
   useEffect(() => {
+    const socket = io('http://localhost:5000');
     const peer = new Peer(socket);
 
     peer.connection.ontrack = (event) => {
@@ -65,24 +88,30 @@ function CallPage() {
 
     return () => {
       socket.off();
+      localStream.getTracks().forEach((track) => track.stop());
+      peer.connection.close();
     };
   }, []);
 
-  function toggleAudio() {
-    const value = !isAudioOn;
-    setIsAudioOn(value);
-    if (localStream) {
-      localStream.getAudioTracks()[0].enabled = value;
-    }
-  }
+  useEffect(() => {
+    localStream.getAudioTracks().forEach((track) => {
+      track.enabled = userMedia.audioEnabled;
+    });
+  }, [userMedia.audioEnabled]);
 
-  function toggleVideo() {
-    const value = !isVideoOn;
-    setIsVideoOn(value);
-    if (localStream) {
-      localStream.getVideoTracks()[0].enabled = value;
-    }
-  }
+  useEffect(() => {
+    localStream.getVideoTracks().forEach((track) => {
+      track.enabled = userMedia.videoEnabled;
+    });
+  }, [userMedia.videoEnabled]);
+
+  useEffect(() => {
+    console.log('streams');
+  }, [streams]);
+
+  const endCall = () => {
+    dispatch(setUsername(''));
+  };
 
   return (
     <Container
@@ -93,22 +122,30 @@ function CallPage() {
         height: '100%',
       }}
     >
-      <VideoGrid
-        streams={streams}
-        localStream={localStream}
-        sx={{
-          flexGrow: 1,
-        }}
-      />
+      {loading ? (
+        <Center
+          sx={{
+            flexGrow: 1,
+          }}
+        >
+          <Loader />
+        </Center>
+      ) : (
+        <VideoGrid
+          streams={streams}
+          localStream={localStream}
+          sx={{ flexGrow: 1 }}
+        />
+      )}
       <Group position="center" mt="md">
         <ActionIcon
           size="xl"
           radius="xl"
           variant="filled"
-          color={isAudioOn ? 'gray' : 'gray'}
-          onClick={toggleAudio}
+          color={userMedia.audioEnabled ? 'gray' : 'gray'}
+          onClick={() => dispatch(toggleAudio())}
         >
-          {isAudioOn ? (
+          {userMedia.audioEnabled ? (
             <TbMicrophone size={24} />
           ) : (
             <TbMicrophoneOff size={24} />
@@ -118,12 +155,16 @@ function CallPage() {
           size="xl"
           radius="xl"
           variant="filled"
-          color={isVideoOn ? 'gray' : 'gray'}
-          onClick={toggleVideo}
+          color={userMedia.videoEnabled ? 'gray' : 'gray'}
+          onClick={() => dispatch(toggleVideo())}
         >
-          {isVideoOn ? <TbVideo size={24} /> : <TbVideoOff size={24} />}
+          {userMedia.videoEnabled ? (
+            <TbVideo size={24} />
+          ) : (
+            <TbVideoOff size={24} />
+          )}
         </ActionIcon>
-        <Button color="red" leftIcon={<TbPhoneX size={16} />}>
+        <Button color="red" leftIcon={<TbPhoneX size={16} />} onClick={endCall}>
           End Call
         </Button>
       </Group>
