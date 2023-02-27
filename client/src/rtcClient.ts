@@ -8,7 +8,7 @@ const RTCConfig: RTCConfiguration = {
   ],
 };
 
-class Peer {
+class RtcClient {
   connection: RTCPeerConnection;
   socket: Socket;
   makingOffer = false;
@@ -86,4 +86,4 @@ class Peer {
   }
 }
 
-export default Peer;
+export default RtcClient;

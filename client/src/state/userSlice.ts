@@ -2,11 +2,11 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from './store';
 
 interface UserState {
-  username: string;
+  name: string;
 }
 
 const initialState: UserState = {
-  username: '',
+  name: '',
 };
 
 const userSlice = createSlice({
@@ -14,7 +14,7 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     setUsername: (state: UserState, { payload }: PayloadAction<string>) => {
-      state.username = payload;
+      state.name = payload;
     },
   },
 });

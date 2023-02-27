@@ -6,7 +6,7 @@ import JoinScreen from './JoinScreen';
 function Room() {
   const user = useSelector(selectUser);
 
-  return user.username.length > 0 ? <CallPage /> : <JoinScreen />;
+  return user.name.length > 0 ? <CallPage /> : <JoinScreen />;
 }
 
 export default Room;

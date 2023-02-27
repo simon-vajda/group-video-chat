@@ -5,7 +5,9 @@ import Room from './room.js';
 const room = new Room();
 
 export function handleConnection(socket) {
-  const peer = new Peer(socket);
-  logger.info(`Peer connected: ${peer.id}`);
-  room.addPeer(peer);
+  socket.on('join', (name) => {
+    const peer = new Peer(socket, name);
+    room.addPeer(peer);
+    logger.info(`Peer joined: ${peer.name} (${peer.id})`);
+  });
 }

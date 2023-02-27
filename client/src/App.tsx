@@ -1,7 +1,4 @@
-import CallDemo from './CallDemo';
 import { MantineProvider, MantineTheme } from '@mantine/core';
-import CallPage from './components/CallPage';
-import JoinScreen from './components/JoinScreen';
 import { NotificationsProvider } from '@mantine/notifications';
 import { Provider } from 'react-redux';
 import store from './state/store';
@@ -35,7 +32,8 @@ function App() {
             Paper: {
               styles: (theme: MantineTheme) => ({
                 root: {
-                  backgroundColor: theme.colors.dark[8],
+                  backgroundColor: theme.colors.dark[9],
+                  borderRadius: theme.radius.md,
                 },
               }),
             },

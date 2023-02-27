@@ -1,16 +1,31 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { ColProps, Grid, Sx } from '@mantine/core';
-import { useMemo } from 'react';
+import {
+  AspectRatio,
+  Box,
+  Center,
+  ColProps,
+  Grid,
+  Paper,
+  Stack,
+  Sx,
+  Text,
+  Title,
+  useMantineTheme,
+} from '@mantine/core';
+import { CSSProperties, useMemo } from 'react';
+import { TbUser } from 'react-icons/tb';
+import { GridItem } from './CallPage';
 
 interface VideoGridProps {
-  streams: MediaStream[];
-  localStream?: MediaStream;
+  gridItems: GridItem[];
   sx?: Sx;
 }
 
-function VideoGrid({ streams, localStream, sx }: VideoGridProps) {
+function VideoGrid({ gridItems, sx }: VideoGridProps) {
+  const theme = useMantineTheme();
+
   function getGridColSize(): ColProps {
-    switch (streams.length) {
+    switch (gridItems.length) {
       case 1:
         return {
           span: 12,
@@ -77,6 +92,20 @@ function VideoGrid({ streams, localStream, sx }: VideoGridProps) {
     }
   }
 
+  const videoStyles: CSSProperties = {
+    objectFit: 'cover',
+    height: '100%',
+    width: '100%',
+    borderRadius: theme.radius.md,
+    aspectRatio: '16/9',
+  };
+
+  const localVideoStyles: CSSProperties = {
+    ...videoStyles,
+    transform: 'scaleX(-1)',
+    WebkitTransform: 'scaleX(-1)',
+  };
+
   return useMemo(
     () => (
       <Grid
@@ -86,37 +115,71 @@ function VideoGrid({ streams, localStream, sx }: VideoGridProps) {
           ...sx,
         }}
       >
-        {streams.map((stream, ind) => (
+        {gridItems.map((item, ind) => (
           <Grid.Col
             key={ind}
             {...getGridColSize()}
             style={{
               transition: 'all 0.3s ease',
+              position: 'relative',
             }}
           >
-            <video
-              key={ind}
-              autoPlay
-              playsInline
-              ref={(el) => {
-                if (el) {
-                  el.srcObject = stream;
-                }
-              }}
-              muted={stream.id === localStream?.id}
-              style={{
-                objectFit: 'cover',
-                height: '100%',
-                width: '100%',
-                borderRadius: 8,
-                aspectRatio: '16/9',
-              }}
-            />
+            {item.stream !== null ? (
+              <>
+                <video
+                  key={ind}
+                  autoPlay
+                  playsInline
+                  ref={(el) => {
+                    if (el) {
+                      el.srcObject = item.stream;
+                    }
+                  }}
+                  muted={item.peer.id === 'local'}
+                  style={
+                    item.peer.id === 'local' ? localVideoStyles : videoStyles
+                  }
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: theme.spacing.md,
+                    left: theme.spacing.md,
+                    borderRadius: theme.radius.md,
+                    backgroundColor: theme.colors.dark[7] + 'C8',
+                    paddingLeft: 10,
+                    paddingRight: 10,
+                    paddingTop: 4,
+                    paddingBottom: 4,
+                  }}
+                >
+                  <Text>
+                    {item.peer.id === 'local' ? 'Me' : item.peer.name}
+                  </Text>
+                </Box>
+              </>
+            ) : (
+              <AspectRatio
+                ratio={16 / 9}
+                sx={{ height: '100%', width: '100%' }}
+              >
+                <Paper>
+                  <Center>
+                    <Stack align="center">
+                      <TbUser size={80} />
+                      <Title order={3}>
+                        {item.peer.id === 'local' ? 'Me' : item.peer.name}
+                      </Title>
+                    </Stack>
+                  </Center>
+                </Paper>
+              </AspectRatio>
+            )}
           </Grid.Col>
         ))}
       </Grid>
     ),
-    [streams, localStream],
+    [gridItems],
   );
 }
 

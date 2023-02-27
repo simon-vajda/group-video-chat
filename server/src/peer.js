@@ -1,6 +1,6 @@
 import { logger } from './app.js';
-import { v4 as uuidv4 } from 'uuid';
 import wrtc from 'wrtc';
+import { randomUUID } from 'crypto';
 import { Socket } from 'socket.io';
 
 const RTCConfig = {
@@ -8,15 +8,17 @@ const RTCConfig = {
 };
 
 class Peer {
-  constructor(socket) {
+  constructor(socket, name) {
     /** @type {string} */
-    this.id = uuidv4();
+    this.id = randomUUID();
     /** @type {RTCPeerConnection} */
     this.connection = new wrtc.RTCPeerConnection(RTCConfig);
     /** @type {Socket} */
     this.socket = socket;
     /** @type {boolean} */
     this.makingOffer = false;
+    /** @type {string} */
+    this.name = name;
 
     this.connection.onicecandidate = (e) => this.onIceCandidate(e);
     this.connection.onnegotiationneeded = () => this.onNegotiationNeeded();
