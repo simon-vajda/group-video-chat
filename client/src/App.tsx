@@ -3,8 +3,28 @@ import { NotificationsProvider } from '@mantine/notifications';
 import { Provider } from 'react-redux';
 import store from './state/store';
 import Room from './components/Room';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 function App() {
+  const router = createBrowserRouter([
+    {
+      children: [
+        {
+          path: '*',
+          element: <h1>404</h1>,
+        },
+        {
+          path: '/',
+          element: <h1>Home</h1>,
+        },
+        {
+          path: 'room/:id',
+          element: <Room />,
+        },
+      ],
+    },
+  ]);
+
   return (
     <Provider store={store}>
       <MantineProvider
@@ -41,7 +61,7 @@ function App() {
         }}
       >
         <NotificationsProvider>
-          <Room />
+          <RouterProvider router={router} />
         </NotificationsProvider>
       </MantineProvider>
     </Provider>

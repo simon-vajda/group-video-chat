@@ -25,6 +25,7 @@ import {
 } from '../state/userMediaSlice';
 import { selectUser, setUsername } from '../state/userSlice';
 import VideoGrid from './VideoGrid';
+import { useParams } from 'react-router-dom';
 
 interface Peer {
   id: string;
@@ -43,6 +44,8 @@ interface StreamOwner {
 }
 
 function CallPage() {
+  const { id: roomId } = useParams();
+
   const [localStream, setLocalStream] = useState<MediaStream>(
     new MediaStream(),
   );
@@ -164,6 +167,8 @@ function CallPage() {
     });
 
     socket.emit('join', user.name);
+
+    console.log('Joining room', roomId);
 
     return () => {
       socket.off();
