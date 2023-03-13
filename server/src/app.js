@@ -6,6 +6,8 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fastifyStatic from '@fastify/static';
+import autoload from '@fastify/autoload';
+import cors from '@fastify/cors';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -32,13 +34,19 @@ const fastify = Fastify({
   // },
 });
 fastify.register(fastifyIO, { cors: { origin: '*' } });
+fastify.register(cors, {
+  origin: '*',
+});
+fastify.register(autoload, {
+  dir: join(__dirname, 'routes'),
+});
 fastify.register(fastifyStatic, {
   root: join(__dirname, '../../client/build'),
   prefix: '/',
 });
 
 process.on('uncaughtException', (err) =>
-  logger.warn(err, 'node process uncaughtException'),
+  logger.error(err, 'node process uncaughtException'),
 );
 fastify.server.on('clientError', (err, socket) => {
   if (err.code === 'ECONNRESET' || !socket.writable) {

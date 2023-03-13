@@ -11,6 +11,8 @@
   "author": "Simon Vajda",
   "license": "ISC",
   "dependencies": {
+    "@fastify/autoload": "^5.7.1",
+    "@fastify/cors": "^8.2.0",
     "@fastify/static": "^6.8.0",
     "fastify": "^4.12.0",
     "fastify-log": "^1.2.2",

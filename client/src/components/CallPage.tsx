@@ -166,8 +166,7 @@ function CallPage() {
       });
     });
 
-    socket.emit('join', user.name);
-
+    socket.emit('join', user.name, roomId);
     console.log('Joining room', roomId);
 
     return () => {

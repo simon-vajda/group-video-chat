@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   ActionIcon,
   AspectRatio,
@@ -10,6 +11,7 @@ import {
   Stack,
   Text,
   TextInput,
+  Title,
   Transition,
 } from '@mantine/core';
 import { useEffect, useState, useMemo } from 'react';
@@ -22,6 +24,8 @@ import {
   TbUserCircle,
   TbX,
   TbSettings,
+  TbError404,
+  TbSearchOff,
 } from 'react-icons/tb';
 import { showNotification } from '@mantine/notifications';
 import { useSelector } from 'react-redux/es/exports';
@@ -34,10 +38,13 @@ import {
 } from '../state/userMediaSlice';
 import { useDispatch } from 'react-redux/es/hooks/useDispatch';
 import { setUsername } from '../state/userSlice';
+import { useCheckRoomQuery } from '../api/roomApi';
+import { useParams } from 'react-router-dom';
 
 function JoinScreen() {
+  const { id: roomId } = useParams();
+
   const [name, setName] = useState('');
-  const [loading, setLoading] = useState(true);
   const [localStream, setLocalStream] = useState<MediaStream>(
     new MediaStream(),
   );
@@ -45,6 +52,13 @@ function JoinScreen() {
 
   const dispatch = useDispatch();
   const userMedia = useSelector(selectUserMedia);
+
+  const {
+    data: roomExists,
+    isLoading,
+    isSuccess,
+    isError,
+  } = useCheckRoomQuery(roomId!);
 
   const loadUserMedia = async () => {
     try {
@@ -80,10 +94,6 @@ function JoinScreen() {
 
   useEffect(() => {
     loadUserMedia();
-
-    setTimeout(() => {
-      setLoading(false);
-    }, 3000);
 
     return () => {
       console.log('unmounting', localStream.getTracks());
@@ -177,14 +187,18 @@ function JoinScreen() {
             </ActionIcon>
           </Group>
         </Stack>
-        <Transition mounted={loading} transition="pop" timingFunction="ease">
+        <Transition mounted={isLoading} transition="pop" timingFunction="ease">
           {(styles) => (
             <Center style={styles}>
               <Loader />
             </Center>
           )}
         </Transition>
-        <Transition mounted={!loading} transition="pop" timingFunction="ease">
+        <Transition
+          mounted={isSuccess && roomExists}
+          transition="pop"
+          timingFunction="ease"
+        >
           {(styles) => (
             <form onSubmit={joinRoom} style={styles}>
               <Stack>
@@ -200,6 +214,34 @@ function JoinScreen() {
                 </Button>
               </Stack>
             </form>
+          )}
+        </Transition>
+        <Transition
+          mounted={isSuccess && !roomExists}
+          transition="pop"
+          timingFunction="ease"
+        >
+          {(styles) => (
+            <Center style={styles}>
+              <Stack align="center" spacing={0}>
+                <Title order={3}>Room not found</Title>
+                <Text c="dimmed" size="lg">
+                  Please check the room ID
+                </Text>
+              </Stack>
+            </Center>
+          )}
+        </Transition>
+        <Transition mounted={isError} transition="pop" timingFunction="ease">
+          {(styles) => (
+            <Center style={styles}>
+              <Stack align="center" spacing={0}>
+                <Title order={3}>Network error</Title>
+                <Text c="dimmed" size="lg">
+                  Please check your internet connection
+                </Text>
+              </Stack>
+            </Center>
           )}
         </Transition>
       </Stack>

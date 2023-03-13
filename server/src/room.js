@@ -3,6 +3,8 @@ import Peer from './peer.js';
 
 class Room {
   constructor() {
+    /** @type {string} */
+    this.id = this.generateId();
     /** @type {Map<string, Peer>} */
     this.peers = new Map();
     /** @type {Map<string, MediaStream>} */
@@ -17,7 +19,7 @@ class Room {
     this.peers.set(peer.id, peer);
     peer.connection.ontrack = (event) => this.onTrack(event, peer);
     peer.socket.on('disconnect', () => this.onDisconnect(peer));
-    peer.socket.broadcast.emit('peer-joined', peer.id, peer.name);
+    peer.socket.to(this.id).emit('peer-joined', peer.id, peer.name);
   }
 
   /**
@@ -30,7 +32,7 @@ class Room {
     );
 
     if (!this.streams.has(peer.id)) {
-      peer.socket.broadcast.emit('peer-stream', event.streams[0].id, peer.id);
+      peer.socket.to(this.id).emit('peer-stream', event.streams[0].id, peer.id);
     }
 
     this.streams.set(peer.id, event.streams[0]);
@@ -51,7 +53,7 @@ class Room {
   /** @param {Peer} peer */
   onDisconnect(peer) {
     logger.info(`Peer disconnected: ${peer.id}`);
-    peer.socket.broadcast.emit('peer-left', peer.id);
+    peer.socket.to(this.id).emit('peer-left', peer.id);
     peer.connection.close();
     this.peers.delete(peer.id);
     this.streams.delete(peer.id);
@@ -70,6 +72,22 @@ class Room {
     }));
 
     peer.socket.emit('peers', peers, streamOwners);
+  }
+
+  /** @returns {string} */
+  generateId() {
+    const ID_LENGTH = 9;
+
+    let chars = [];
+    for (let i = 0; i < ID_LENGTH; i++) {
+      const char = Math.floor(Math.random() * 36).toString(36);
+      chars.push(char);
+    }
+
+    chars.splice(3, 0, '-');
+    chars.splice(7, 0, '-');
+
+    return chars.join('');
   }
 }
 

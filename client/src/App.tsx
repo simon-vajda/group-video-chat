@@ -8,11 +8,8 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 function App() {
   const router = createBrowserRouter([
     {
+      errorElement: <h1>404</h1>,
       children: [
-        {
-          path: '*',
-          element: <h1>404</h1>,
-        },
         {
           path: '/',
           element: <h1>Home</h1>,
