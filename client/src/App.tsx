@@ -35,6 +35,11 @@ function App() {
                 radius: 'xl',
               },
             },
+            UnstyledButton: {
+              defaultProps: {
+                borderRadius: 'xl',
+              },
+            },
             Input: {
               defaultProps: {
                 radius: 'xl',
