@@ -76,18 +76,7 @@ class Room {
 
   /** @returns {string} */
   generateId() {
-    const ID_LENGTH = 9;
-
-    let chars = [];
-    for (let i = 0; i < ID_LENGTH; i++) {
-      const char = Math.floor(Math.random() * 36).toString(36);
-      chars.push(char);
-    }
-
-    chars.splice(3, 0, '-');
-    chars.splice(7, 0, '-');
-
-    return chars.join('');
+    return Math.floor(Math.random() * 1000000).toString();
   }
 }
 

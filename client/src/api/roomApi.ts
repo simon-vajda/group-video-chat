@@ -15,4 +15,4 @@ export const roomApi = createApi({
   }),
 });
 
-export const { useCheckRoomQuery } = roomApi;
+export const { useCheckRoomQuery, useLazyCheckRoomQuery } = roomApi;

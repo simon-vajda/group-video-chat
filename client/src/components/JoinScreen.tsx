@@ -24,8 +24,6 @@ import {
   TbUserCircle,
   TbX,
   TbSettings,
-  TbError404,
-  TbSearchOff,
 } from 'react-icons/tb';
 import { showNotification } from '@mantine/notifications';
 import { useSelector } from 'react-redux/es/exports';
