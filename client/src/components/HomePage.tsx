@@ -16,7 +16,7 @@ import {
 import { useEffect, useState } from 'react';
 import { TbKey, TbVideoPlus } from 'react-icons/tb';
 import { useNavigate } from 'react-router-dom';
-import { useLazyCheckRoomQuery } from '../api/roomApi';
+import { useLazyCheckRoomQuery, useLazyCreateRoomQuery } from '../api/roomApi';
 import Layout from './Layout';
 
 const useStyles = createStyles((theme) => ({
@@ -52,8 +52,9 @@ function HomePage() {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
 
-  const [checkRoom, response] = useLazyCheckRoomQuery();
-  const { isSuccess, data: roomExists, isError, isLoading } = response;
+  const [createRoom, createResponse] = useLazyCreateRoomQuery();
+  const [checkRoom, checkResponse] = useLazyCheckRoomQuery();
+  const { isSuccess, data: roomExists, isError, isLoading } = checkResponse;
 
   function handlePinChange(s: string) {
     setPin(s);
@@ -81,7 +82,14 @@ function HomePage() {
     if (isError) {
       setError('Something went wrong');
     }
-  }, [response]);
+  }, [checkResponse]);
+
+  useEffect(() => {
+    if (createResponse.isSuccess && !createResponse.isLoading) {
+      const roomId = createResponse.data;
+      navigate(`/room/${roomId}`);
+    }
+  }, [createResponse]);
 
   return (
     <Layout>
@@ -113,6 +121,8 @@ function HomePage() {
             gradient={{ from: 'indigo', to: 'cyan' }}
             size="md"
             leftIcon={<TbVideoPlus size={22} />}
+            loading={createResponse.isLoading}
+            onClick={() => createRoom()}
           >
             Create a room
           </Button>
