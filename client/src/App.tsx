@@ -31,6 +31,11 @@ function App() {
         theme={{
           colorScheme: 'dark',
           components: {
+            ActionIcon: {
+              defaultProps: {
+                radius: 'xl',
+              },
+            },
             Button: {
               defaultProps: {
                 radius: 'xl',

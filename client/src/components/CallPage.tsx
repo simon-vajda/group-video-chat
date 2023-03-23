@@ -4,8 +4,10 @@ import {
   Button,
   Center,
   Container,
+  Divider,
   Group,
   Loader,
+  Text,
 } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import {
@@ -14,6 +16,9 @@ import {
   TbVideo,
   TbVideoOff,
   TbPhoneX,
+  TbShare3,
+  TbShare,
+  TbShare2,
 } from 'react-icons/tb';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
@@ -26,6 +31,7 @@ import {
 import { selectUser, setUsername } from '../state/userSlice';
 import VideoGrid from './VideoGrid';
 import { useNavigate, useParams } from 'react-router-dom';
+import { notifications } from '@mantine/notifications';
 
 interface Peer {
   id: string;
@@ -239,6 +245,20 @@ function CallPage() {
     navigate('/');
   };
 
+  function copyShareLink() {
+    const roomLink =
+      window.location.protocol +
+      '//' +
+      window.location.host +
+      `/room/${roomId}`;
+    navigator.clipboard.writeText(roomLink);
+    notifications.show({
+      title: 'Link copied',
+      message: 'The room link has been copied to your clipboard',
+      autoClose: 1500,
+    });
+  }
+
   return (
     <Container
       fluid
@@ -259,33 +279,49 @@ function CallPage() {
       ) : (
         <VideoGrid gridItems={gridItems} sx={{ flexGrow: 1 }} />
       )}
-      <Group position="center" mt="md">
-        <ActionIcon
-          size="xl"
-          radius="xl"
-          variant="filled"
-          color={userMedia.audioEnabled ? 'gray' : 'gray'}
-          onClick={() => dispatch(toggleAudio())}
-        >
-          {userMedia.audioEnabled ? (
-            <TbMicrophone size={24} />
-          ) : (
-            <TbMicrophoneOff size={24} />
-          )}
-        </ActionIcon>
-        <ActionIcon
-          size="xl"
-          radius="xl"
-          variant="filled"
-          color={userMedia.videoEnabled ? 'gray' : 'gray'}
-          onClick={() => dispatch(toggleVideo())}
-        >
-          {userMedia.videoEnabled ? (
-            <TbVideo size={24} />
-          ) : (
-            <TbVideoOff size={24} />
-          )}
-        </ActionIcon>
+      <Group position="apart" align="end" mt="md">
+        <Group spacing={8} align="center">
+          <Text
+            fz="lg"
+            fw={500}
+            sx={{
+              letterSpacing: 4,
+            }}
+          >
+            {roomId}
+          </Text>
+          <ActionIcon onClick={copyShareLink}>
+            <TbShare2 size={18} />
+          </ActionIcon>
+        </Group>
+        <Group position="center" align="center">
+          <ActionIcon
+            size="xl"
+            radius="xl"
+            variant="filled"
+            color={userMedia.audioEnabled ? 'gray' : 'gray'}
+            onClick={() => dispatch(toggleAudio())}
+          >
+            {userMedia.audioEnabled ? (
+              <TbMicrophone size={24} />
+            ) : (
+              <TbMicrophoneOff size={24} />
+            )}
+          </ActionIcon>
+          <ActionIcon
+            size="xl"
+            radius="xl"
+            variant="filled"
+            color={userMedia.videoEnabled ? 'gray' : 'gray'}
+            onClick={() => dispatch(toggleVideo())}
+          >
+            {userMedia.videoEnabled ? (
+              <TbVideo size={24} />
+            ) : (
+              <TbVideoOff size={24} />
+            )}
+          </ActionIcon>
+        </Group>
         <Button color="red" leftIcon={<TbPhoneX size={16} />} onClick={endCall}>
           End Call
         </Button>
