@@ -19,6 +19,7 @@ import {
   TbShare3,
   TbShare,
   TbShare2,
+  TbHandStop,
 } from 'react-icons/tb';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
@@ -32,6 +33,7 @@ import { selectUser, setUsername } from '../state/userSlice';
 import VideoGrid from './VideoGrid';
 import { useNavigate, useParams } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
+import ReactionSelector from './ReactionSelector';
 
 interface Peer {
   id: string;
@@ -63,6 +65,7 @@ function CallPage() {
   const [streams, setStreams] = useState<MediaStream[]>([]);
   const [gridItems, setGridItems] = useState<GridItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [handRaised, setHandRaised] = useState(false);
 
   const dispatch = useDispatch();
   const userMedia = useSelector(selectUserMedia);
@@ -297,7 +300,15 @@ function CallPage() {
         <Group position="center" align="center">
           <ActionIcon
             size="xl"
-            radius="xl"
+            variant="filled"
+            color={handRaised ? 'yellow' : 'gray'}
+            onClick={() => setHandRaised((v) => !v)}
+          >
+            <TbHandStop size={24} />
+          </ActionIcon>
+          <ReactionSelector />
+          <ActionIcon
+            size="xl"
             variant="filled"
             color={userMedia.audioEnabled ? 'gray' : 'gray'}
             onClick={() => dispatch(toggleAudio())}
@@ -310,7 +321,6 @@ function CallPage() {
           </ActionIcon>
           <ActionIcon
             size="xl"
-            radius="xl"
             variant="filled"
             color={userMedia.videoEnabled ? 'gray' : 'gray'}
             onClick={() => dispatch(toggleVideo())}
