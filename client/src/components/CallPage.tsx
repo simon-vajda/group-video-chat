@@ -4,7 +4,6 @@ import {
   Button,
   Center,
   Container,
-  Divider,
   Group,
   Loader,
   Text,
@@ -16,8 +15,6 @@ import {
   TbVideo,
   TbVideoOff,
   TbPhoneX,
-  TbShare3,
-  TbShare,
   TbShare2,
   TbHandStop,
 } from 'react-icons/tb';
@@ -33,12 +30,15 @@ import { selectUser, setUsername } from '../state/userSlice';
 import VideoGrid from './VideoGrid';
 import { useNavigate, useParams } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
-import ReactionSelector from './ReactionSelector';
+import ReactionSelector, { Reaction } from './ReactionSelector';
+import useConsoleLog from '../hooks/useConsoleLog';
 
 interface Peer {
   id: string;
   name: string;
   index: number;
+  handRaised: boolean;
+  reactions: Reaction[];
 }
 
 interface GridItem {
@@ -51,10 +51,16 @@ interface StreamOwner {
   peerId: string;
 }
 
+type ReactionData = {
+  reaction: Reaction;
+  peerId: string;
+};
+
 function CallPage() {
   const { id: roomId } = useParams();
   const navigate = useNavigate();
 
+  const [client, setClient] = useState<RtcClient | null>(null);
   const [localStream, setLocalStream] = useState<MediaStream>(
     new MediaStream(),
   );
@@ -66,6 +72,7 @@ function CallPage() {
   const [gridItems, setGridItems] = useState<GridItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [handRaised, setHandRaised] = useState(false);
+  const [reactionBuffer, setReactionBuffer] = useState<ReactionData[]>([]);
 
   const dispatch = useDispatch();
   const userMedia = useSelector(selectUserMedia);
@@ -86,6 +93,8 @@ function CallPage() {
           id: 'local',
           name: user.name,
           index: 0,
+          handRaised: false,
+          reactions: [],
         };
 
         setLocalStream(stream);
@@ -104,6 +113,7 @@ function CallPage() {
         ? io('http://localhost:5000')
         : io();
     const client = new RtcClient(socket);
+    setClient(client);
     let peerIndex = 1;
 
     client.connection.ontrack = (event) => {
@@ -116,6 +126,11 @@ function CallPage() {
         return prev;
       });
     };
+
+    client.setReactionListener((reaction, peerId) => {
+      setReactionBuffer((prev) => [...prev, { reaction, peerId }]);
+      console.log('Reaction received', reaction, peerId);
+    });
 
     socket.on('connect', async () => {
       console.info('Connected to server');
@@ -147,6 +162,8 @@ function CallPage() {
         id,
         name,
         index: peerIndex++,
+        handRaised: false,
+        reactions: [],
       };
       setPeers((prev) => new Map(prev).set(id, peer));
     });
@@ -162,6 +179,7 @@ function CallPage() {
       setPeers((prev) => {
         const newPeers = new Map(prev);
         peerList.forEach((peer) => {
+          peer.reactions = [];
           newPeers.set(peer.id, peer);
         });
         return newPeers;
@@ -243,6 +261,38 @@ function CallPage() {
     setGridItems(items);
   }, [streams, streamOwners, peers]);
 
+  useEffect(() => {
+    const remainingReactions: ReactionData[] = [];
+
+    reactionBuffer.forEach((data) => {
+      const peer = peers.get(data.peerId);
+      if (peer) {
+        if (data.reaction === 'hand-up') {
+          peer.handRaised = true;
+          setPeers((prev) => new Map(prev).set(peer.id, peer));
+        } else if (data.reaction === 'hand-down') {
+          peer.handRaised = false;
+          setPeers((prev) => new Map(prev).set(peer.id, peer));
+        } else {
+          peer.reactions = [...peer.reactions, data.reaction];
+          setPeers((prev) => new Map(prev).set(peer.id, peer));
+
+          setTimeout(() => {
+            peer.reactions.shift();
+            setPeers((prev) => new Map(prev).set(peer.id, peer));
+          }, 2000);
+        }
+      } else {
+        remainingReactions.push(data);
+      }
+    });
+    setReactionBuffer((prev) =>
+      remainingReactions.length === prev.length ? prev : remainingReactions,
+    );
+  }, [reactionBuffer, peers]);
+
+  useConsoleLog('Peers', peers);
+
   const endCall = () => {
     dispatch(setUsername(''));
     navigate('/');
@@ -259,6 +309,14 @@ function CallPage() {
       title: 'Link copied',
       message: 'The room link has been copied to your clipboard',
       autoClose: 1500,
+    });
+  }
+
+  function toggleHandRaise() {
+    setHandRaised((prev) => {
+      const newValue = !prev;
+      client?.sendReaction(newValue ? 'hand-up' : 'hand-down');
+      return newValue;
     });
   }
 
@@ -302,11 +360,11 @@ function CallPage() {
             size="xl"
             variant="filled"
             color={handRaised ? 'yellow' : 'gray'}
-            onClick={() => setHandRaised((v) => !v)}
+            onClick={toggleHandRaise}
           >
             <TbHandStop size={24} />
           </ActionIcon>
-          <ReactionSelector />
+          <ReactionSelector onReaction={(r) => client?.sendReaction(r)} />
           <ActionIcon
             size="xl"
             variant="filled"

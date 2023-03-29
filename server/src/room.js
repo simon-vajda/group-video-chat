@@ -20,6 +20,7 @@ class Room {
     peer.connection.ontrack = (event) => this.onTrack(event, peer);
     peer.socket.on('disconnect', () => this.onDisconnect(peer));
     peer.socket.to(this.id).emit('peer-joined', peer.id, peer.name);
+    peer.reactioinChannel.onmessage = (e) => this.onReaction(e.data, peer);
   }
 
   /**
@@ -64,6 +65,7 @@ class Room {
     const peers = Array.from(this.peers).map(([pId, p]) => ({
       id: p.id,
       name: p.name,
+      handRaised: p.handRaised,
     }));
 
     const streamOwners = Array.from(this.streams).map(([peerId, stream]) => ({
@@ -72,6 +74,28 @@ class Room {
     }));
 
     peer.socket.emit('peers', peers, streamOwners);
+  }
+
+  /**
+   * @param {string} reaction
+   * @param {Peer} peer
+   */
+  onReaction(reaction, peer) {
+    logger.trace(`Reaction: ${reaction} from peer: ${peer.id}`);
+
+    if (reaction === 'hand-up') peer.handRaised = true;
+    if (reaction === 'hand-down') peer.handRaised = false;
+
+    this.peers.forEach((p) => {
+      if (p.id === peer.id) return;
+      if (p.reactioinChannel.readyState !== 'open') return;
+
+      const data = {
+        reaction,
+        peerId: peer.id,
+      };
+      p.reactioinChannel.send(JSON.stringify(data));
+    });
   }
 
   /** @returns {string} */

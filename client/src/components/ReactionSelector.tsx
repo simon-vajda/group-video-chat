@@ -1,15 +1,11 @@
 import { ActionIcon, Group, Popover } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import { useState } from 'react';
-import {
-  TbHandStop,
-  TbMoodSmile,
-  TbThumbDownFilled,
-  TbThumbUpFilled,
-} from 'react-icons/tb';
+import { TbMoodSmile } from 'react-icons/tb';
 import Emoji from './Emoji';
 
-type Reaction =
+export type Reaction =
+  | 'hand-up'
+  | 'hand-down'
   | 'like'
   | 'clapping'
   | 'heart'
@@ -17,11 +13,15 @@ type Reaction =
   | 'surprised'
   | 'dislike';
 
-function ReactionSelector() {
+type ReactionSelectorProps = {
+  onReaction: (reaction: Reaction) => void;
+};
+
+function ReactionSelector({ onReaction }: ReactionSelectorProps) {
   const [open, setOpen] = useState(false);
 
   function handleReaction(reaction: Reaction) {
-    console.log(reaction);
+    onReaction(reaction);
     setOpen(false);
   }
 
@@ -90,6 +90,27 @@ function ReactionSelector() {
       </Popover.Dropdown>
     </Popover>
   );
+}
+
+export function getSymbol(reaction: Reaction) {
+  switch (reaction) {
+    case 'hand-up':
+      return '✋';
+    case 'hand-down':
+      return '✋';
+    case 'like':
+      return '👍';
+    case 'clapping':
+      return '👏';
+    case 'heart':
+      return '❤️';
+    case 'laughing':
+      return '😂';
+    case 'surprised':
+      return '😮';
+    case 'dislike':
+      return '👎';
+  }
 }
 
 export default ReactionSelector;
