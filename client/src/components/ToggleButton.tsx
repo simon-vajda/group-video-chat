@@ -1,6 +1,4 @@
 import { ActionIcon } from '@mantine/core';
-import { useState } from 'react';
-import { IconType } from 'react-icons/lib';
 
 interface Props {
   onClick: (turnedOn: boolean) => void;
