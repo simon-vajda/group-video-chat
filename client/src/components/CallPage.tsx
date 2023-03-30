@@ -17,6 +17,7 @@ import {
   TbPhoneX,
   TbShare2,
   TbHandStop,
+  TbLink,
 } from 'react-icons/tb';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
@@ -31,7 +32,6 @@ import VideoGrid from './VideoGrid';
 import { useNavigate, useParams } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import ReactionSelector, { Reaction } from './ReactionSelector';
-import useConsoleLog from '../hooks/useConsoleLog';
 
 interface Peer {
   id: string;
@@ -291,8 +291,6 @@ function CallPage() {
     );
   }, [reactionBuffer, peers]);
 
-  useConsoleLog('Peers', peers);
-
   const endCall = () => {
     dispatch(setUsername(''));
     navigate('/');
@@ -309,6 +307,7 @@ function CallPage() {
       title: 'Link copied',
       message: 'The room link has been copied to your clipboard',
       autoClose: 1500,
+      icon: <TbLink size={18} />,
     });
   }
 
@@ -341,7 +340,7 @@ function CallPage() {
         <VideoGrid gridItems={gridItems} sx={{ flexGrow: 1 }} />
       )}
       <Group position="apart" align="end" mt="md">
-        <Group spacing={8} align="center">
+        <Group spacing={6} align="center">
           <Text
             fz="lg"
             fw={500}
@@ -351,7 +350,7 @@ function CallPage() {
           >
             {roomId}
           </Text>
-          <ActionIcon onClick={copyShareLink}>
+          <ActionIcon onClick={copyShareLink} size="lg">
             <TbShare2 size={18} />
           </ActionIcon>
         </Group>

@@ -85,7 +85,7 @@ class RtcClient {
       await this.connection.addIceCandidate(candidate);
       console.log('Candidate received', candidate);
     } catch (err) {
-      console.error('Candidate received error', candidate);
+      console.error('Candidate received error', err, candidate);
     }
   }
 
