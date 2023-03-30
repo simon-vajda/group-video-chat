@@ -110,7 +110,7 @@ class RtcClient {
   }
 
   sendReaction(reaction: Reaction) {
-    if (this.reactionChannel) {
+    if (this.reactionChannel && this.reactionChannel.readyState === 'open') {
       this.reactionChannel.send(reaction);
     }
   }

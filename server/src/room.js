@@ -20,7 +20,7 @@ class Room {
     peer.connection.ontrack = (event) => this.onTrack(event, peer);
     peer.socket.on('disconnect', () => this.onDisconnect(peer));
     peer.socket.to(this.id).emit('peer-joined', peer.id, peer.name);
-    peer.reactioinChannel.onmessage = (e) => this.onReaction(e.data, peer);
+    peer.reactionChannel.onmessage = (e) => this.onReaction(e.data, peer);
   }
 
   /**
@@ -88,19 +88,24 @@ class Room {
 
     this.peers.forEach((p) => {
       if (p.id === peer.id) return;
-      if (p.reactioinChannel.readyState !== 'open') return;
+      if (!p.reactionChannel || p.reactionChannel.readyState !== 'open') return;
 
       const data = {
         reaction,
         peerId: peer.id,
       };
-      p.reactioinChannel.send(JSON.stringify(data));
+      p.reactionChannel.send(JSON.stringify(data));
     });
   }
 
   /** @returns {string} */
   generateId() {
-    return Math.floor(Math.random() * 1000000).toString();
+    const length = 6;
+    let id = '';
+    for (let i = 0; i < length; i++) {
+      id += Math.floor(Math.random() * 10);
+    }
+    return id;
   }
 }
 

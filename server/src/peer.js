@@ -24,7 +24,7 @@ class Peer {
     this.connection.onnegotiationneeded = () => this.onNegotiationNeeded();
     this.connection.onconnectionstatechange = () =>
       this.onConnectionStateChange();
-    this.reactioinChannel = this.connection.createDataChannel('reactions');
+    this.reactionChannel = this.connection.createDataChannel('reactions');
 
     this.socket.on('answer', (e) => this.onAnswerReceived(e));
     this.socket.on('icecandidate', (e) => this.onCandidateReceived(e));
