@@ -21,7 +21,7 @@ class RtcClient {
     this.socket = socket;
 
     this.connection.onnegotiationneeded = () => this.onNegotiationNeeded();
-    this.connection.onicecandidate = (e) => this.onIceCandidate(e);
+    this.connection.onicecandidate = (e) => this.onIceCandidate(e.candidate);
     this.connection.onconnectionstatechange = () =>
       this.onConnectionStateChange();
     this.connection.ondatachannel = (e) => this.onDataChannel(e);
@@ -48,10 +48,10 @@ class RtcClient {
     await this.sendOffer();
   }
 
-  onIceCandidate(event: RTCPeerConnectionIceEvent) {
-    if (event.candidate) {
-      this.socket.emit('icecandidate', event.candidate);
-      console.log('Sending candidate', event.candidate);
+  onIceCandidate(iceCandidate: RTCIceCandidate | null) {
+    if (iceCandidate && iceCandidate.candidate !== '') {
+      this.socket.emit('icecandidate', iceCandidate);
+      console.log('Sending candidate', iceCandidate);
     }
   }
 

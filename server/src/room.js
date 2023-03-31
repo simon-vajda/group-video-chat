@@ -88,7 +88,7 @@ class Room {
 
     this.peers.forEach((p) => {
       if (p.id === peer.id) return;
-      if (!p.reactionChannel || p.reactionChannel.readyState !== 'open') return;
+      if (p.reactionChannel.readyState !== 'open') return;
 
       const data = {
         reaction,

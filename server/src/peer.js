@@ -20,10 +20,12 @@ class Peer {
     /** @type {string} */
     this.name = name;
 
-    this.connection.onicecandidate = (e) => this.onIceCandidate(e);
+    this.connection.onicecandidate = (e) => this.onIceCandidate(e.candidate);
     this.connection.onnegotiationneeded = () => this.onNegotiationNeeded();
     this.connection.onconnectionstatechange = () =>
       this.onConnectionStateChange();
+
+    /** @type {RTCDataChannel} */
     this.reactionChannel = this.connection.createDataChannel('reactions');
 
     this.socket.on('answer', (e) => this.onAnswerReceived(e));
@@ -31,9 +33,10 @@ class Peer {
     this.socket.on('offer', (e) => this.onOfferReceived(e));
   }
 
-  onIceCandidate({ candidate }) {
-    if (candidate) {
-      this.socket.emit('icecandidate', candidate);
+  /** @param {RTCIceCandidate} candidate */
+  onIceCandidate(iceCandidate) {
+    if (iceCandidate && iceCandidate.candidate !== '') {
+      this.socket.emit('icecandidate', iceCandidate);
       logger.trace(`Candidate sent to: ${this.id}`);
     }
   }
