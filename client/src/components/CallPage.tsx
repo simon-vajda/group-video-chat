@@ -32,6 +32,7 @@ import VideoGrid from './VideoGrid';
 import { useNavigate, useParams } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import ReactionSelector, { Reaction } from './ReactionSelector';
+import { getServerUrl } from '../App';
 
 interface Peer {
   id: string;
@@ -108,10 +109,7 @@ function CallPage() {
   }
 
   useEffect(() => {
-    const socket =
-      !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
-        ? io('http://localhost:5000', { path: '/api/socket.io' })
-        : io({ path: '/api/socket.io' });
+    const socket = io(getServerUrl(), { path: '/api/socket.io' });
     const client = new RtcClient(socket);
     setClient(client);
     let peerIndex = 1;

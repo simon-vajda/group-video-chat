@@ -1,8 +1,11 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { getServerUrl } from '../App';
+
+const baseUrl = `${getServerUrl()}/api/v1/`;
 
 export const roomApi = createApi({
   reducerPath: 'roomApi',
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:5000/api/v1/' }),
+  baseQuery: fetchBaseQuery({ baseUrl }),
   endpoints: (builder) => ({
     checkRoom: builder.query<boolean, string>({
       query: (roomId) => `room/${roomId}`,
