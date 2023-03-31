@@ -33,7 +33,7 @@ const fastify = Fastify({
   //   rejectUnauthorized: false,
   // },
 });
-fastify.register(fastifyIO, { cors: { origin: '*' } });
+fastify.register(fastifyIO, { cors: { origin: '*' }, path: '/api/socket.io/' });
 fastify.register(cors, {
   origin: '*',
 });

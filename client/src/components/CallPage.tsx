@@ -110,8 +110,8 @@ function CallPage() {
   useEffect(() => {
     const socket =
       !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
-        ? io('http://localhost:5000')
-        : io();
+        ? io('http://localhost:5000', { path: '/api/socket.io' })
+        : io({ path: '/api/socket.io' });
     const client = new RtcClient(socket);
     setClient(client);
     let peerIndex = 1;
