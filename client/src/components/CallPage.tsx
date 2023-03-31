@@ -34,6 +34,8 @@ import { notifications } from '@mantine/notifications';
 import ReactionSelector, { Reaction } from './ReactionSelector';
 import { getServerUrl } from '../App';
 
+type PeerID = string;
+
 interface Peer {
   id: string;
   name: string;
@@ -57,11 +59,16 @@ type ReactionData = {
   peerId: string;
 };
 
+function initClient(): RtcClient {
+  const socket = io(getServerUrl(), { path: '/api/socket.io' });
+  return new RtcClient(socket);
+}
+
 function CallPage() {
   const { id: roomId } = useParams();
   const navigate = useNavigate();
 
-  const [client, setClient] = useState<RtcClient | null>(null);
+  const [client] = useState<RtcClient>(initClient());
   const [localStream, setLocalStream] = useState<MediaStream>(
     new MediaStream(),
   );
@@ -109,12 +116,12 @@ function CallPage() {
   }
 
   useEffect(() => {
-    const socket = io(getServerUrl(), { path: '/api/socket.io' });
-    const client = new RtcClient(socket);
-    setClient(client);
+    const socket = client.socket;
+    const pc = client.connection;
+
     let peerIndex = 1;
 
-    client.connection.ontrack = (event) => {
+    pc.ontrack = (event) => {
       console.log('Track received', event);
       const stream = event.streams[0];
       setStreams((prev) => {
@@ -124,11 +131,6 @@ function CallPage() {
         return prev;
       });
     };
-
-    client.setReactionListener((reaction, peerId) => {
-      setReactionBuffer((prev) => [...prev, { reaction, peerId }]);
-      console.log('Reaction received', reaction, peerId);
-    });
 
     socket.on('connect', async () => {
       console.info('Connected to server');
@@ -190,6 +192,11 @@ function CallPage() {
         });
         return newOwners;
       });
+    });
+
+    socket.on('reaction', (reaction: Reaction, peerId: PeerID) => {
+      setReactionBuffer((prev) => [...prev, { reaction, peerId }]);
+      console.log('Reaction received', reaction, peerId);
     });
 
     socket.emit('join', user.name, roomId);
@@ -312,7 +319,7 @@ function CallPage() {
   function toggleHandRaise() {
     setHandRaised((prev) => {
       const newValue = !prev;
-      client?.sendReaction(newValue ? 'hand-up' : 'hand-down');
+      client.sendReaction(newValue ? 'hand-up' : 'hand-down');
       return newValue;
     });
   }
@@ -361,7 +368,7 @@ function CallPage() {
           >
             <TbHandStop size={24} />
           </ActionIcon>
-          <ReactionSelector onReaction={(r) => client?.sendReaction(r)} />
+          <ReactionSelector onReaction={(r) => client.sendReaction(r)} />
           <ActionIcon
             size="xl"
             variant="filled"

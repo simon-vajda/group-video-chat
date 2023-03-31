@@ -32,9 +32,6 @@ class Peer {
     this.connection.onconnectionstatechange = () =>
       this.onConnectionStateChange();
 
-    /** @type {RTCDataChannel} */
-    this.reactionChannel = this.connection.createDataChannel('reactions');
-
     this.socket.on('answer', (e) => this.onAnswerReceived(e));
     this.socket.on('icecandidate', (e) => this.onCandidateReceived(e));
     this.socket.on('offer', (e) => this.onOfferReceived(e));

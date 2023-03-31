@@ -16,8 +16,6 @@ class RtcClient {
   connection: RTCPeerConnection;
   socket: Socket;
   makingOffer = false;
-  reactionChannel: RTCDataChannel | null = null;
-  reactionHandler: ((reaction: Reaction, peerId: string) => void) | null = null;
 
   constructor(socket: Socket) {
     this.connection = new RTCPeerConnection(RTCConfig);
@@ -27,7 +25,6 @@ class RtcClient {
     this.connection.onicecandidate = (e) => this.onIceCandidate(e.candidate);
     this.connection.onconnectionstatechange = () =>
       this.onConnectionStateChange();
-    this.connection.ondatachannel = (e) => this.onDataChannel(e);
 
     this.socket.on('offer', (e) => this.onOfferReceived(e));
     this.socket.on('answer', (e) => this.onAnswerReceived(e));
@@ -92,30 +89,8 @@ class RtcClient {
     }
   }
 
-  onDataChannel(event: RTCDataChannelEvent) {
-    if (event.channel.label === 'reactions') {
-      this.reactionChannel = event.channel;
-      this.reactionChannel.onmessage = (e) => {
-        if (this.reactionHandler) {
-          const { reaction, peerId } = JSON.parse(e.data) as {
-            reaction: Reaction;
-            peerId: string;
-          };
-          this.reactionHandler(reaction, peerId);
-        }
-      };
-    }
-    console.log('Data channel received', event);
-  }
-
-  setReactionListener(callback: (reaction: Reaction, peerId: string) => void) {
-    this.reactionHandler = callback;
-  }
-
   sendReaction(reaction: Reaction) {
-    if (this.reactionChannel && this.reactionChannel.readyState === 'open') {
-      this.reactionChannel.send(reaction);
-    }
+    this.socket.emit('reaction', reaction);
   }
 }
 

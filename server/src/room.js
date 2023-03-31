@@ -19,8 +19,8 @@ class Room {
     this.peers.set(peer.id, peer);
     peer.connection.ontrack = (event) => this.onTrack(event, peer);
     peer.socket.on('disconnect', () => this.onDisconnect(peer));
+    peer.socket.on('reaction', (reaction) => this.onReaction(reaction, peer));
     peer.socket.to(this.id).emit('peer-joined', peer.id, peer.name);
-    peer.reactionChannel.onmessage = (e) => this.onReaction(e.data, peer);
   }
 
   /**
@@ -86,16 +86,7 @@ class Room {
     if (reaction === 'hand-up') peer.handRaised = true;
     if (reaction === 'hand-down') peer.handRaised = false;
 
-    this.peers.forEach((p) => {
-      if (p.id === peer.id) return;
-      if (p.reactionChannel.readyState !== 'open') return;
-
-      const data = {
-        reaction,
-        peerId: peer.id,
-      };
-      p.reactionChannel.send(JSON.stringify(data));
-    });
+    peer.socket.to(this.id).emit('reaction', reaction, peer.id);
   }
 
   /** @returns {string} */
