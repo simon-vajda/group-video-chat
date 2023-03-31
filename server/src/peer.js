@@ -4,7 +4,14 @@ import { randomUUID } from 'crypto';
 import { Socket } from 'socket.io';
 
 const RTCConfig = {
-  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    {
+      urls: 'turn:chat.vsimon.hu:3478',
+      username: 'group-video-chat',
+      credential: 'group-video-chat',
+    },
+  ],
 };
 
 class Peer {
@@ -83,7 +90,8 @@ class Peer {
     try {
       await this.connection.addIceCandidate(candidate);
     } catch (err) {
-      logger.error(err);
+      logger.warn(err);
+      logger.warn(candidate, 'Add ice candidate failed');
     }
   }
 

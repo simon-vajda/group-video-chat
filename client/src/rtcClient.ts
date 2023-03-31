@@ -3,8 +3,11 @@ import { Reaction } from './components/ReactionSelector';
 
 const RTCConfig: RTCConfiguration = {
   iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
     {
-      urls: 'stun:stun.l.google.com:19302',
+      urls: 'turn:chat.vsimon.hu:3478',
+      username: 'group-video-chat',
+      credential: 'group-video-chat',
     },
   ],
 };
