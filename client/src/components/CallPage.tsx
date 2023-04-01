@@ -72,12 +72,11 @@ function CallPage() {
   const [localStream, setLocalStream] = useState<MediaStream>(
     new MediaStream(),
   );
+  const [streams, setStreams] = useState<MediaStream[]>([]);
   const [peers, setPeers] = useState<Map<PeerID, Peer>>(new Map());
   const [streamOwners, setStreamOwners] = useState<Map<StreamID, PeerID>>(
     new Map(),
   );
-  const [streams, setStreams] = useState<MediaStream[]>([]);
-
   const [loading, setLoading] = useState(true);
   const [handRaised, setHandRaised] = useState(false);
 
@@ -89,32 +88,33 @@ function CallPage() {
   useMuter(localStream);
 
   async function initMedia(pc: RTCPeerConnection) {
-    navigator.mediaDevices
-      .getUserMedia({
+    try {
+      const media = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true,
-      })
-      .then((stream) => {
-        console.log('Local stream', stream);
-        stream.getTracks().forEach((track) => {
-          pc.addTrack(track, stream);
-        });
-        const localPeer: Peer = {
-          id: 'local',
-          name: user.name,
-          index: -1,
-          handRaised: false,
-          reaction: { value: 'like', timeLeft: 0 },
-        };
-
-        setLocalStream(stream);
-        setPeers((prev) => new Map(prev).set('local', localPeer));
-        setStreams((prev) => [...prev, stream]);
-        setStreamOwners((prev) => new Map(prev).set(stream.id, 'local'));
-      })
-      .finally(() => {
-        setLoading(false);
       });
+      console.log('Local stream', media);
+      media.getTracks().forEach((track) => {
+        pc.addTrack(track, media);
+      });
+
+      const localPeer: Peer = {
+        id: 'local',
+        name: user.name,
+        index: -1,
+        handRaised: false,
+        reaction: { value: 'like', timeLeft: 0 },
+      };
+
+      setLocalStream(media);
+      setPeers((prev) => new Map(prev).set('local', localPeer));
+      setStreams((prev) => [...prev, media]);
+      setStreamOwners((prev) => new Map(prev).set(media.id, 'local'));
+    } catch (err) {
+      console.error('Failed to get local stream', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
