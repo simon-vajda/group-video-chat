@@ -159,7 +159,7 @@ function VideoGrid({ gridItems, sx }: VideoGridProps) {
                   </Box>
                 )}
                 <Transition
-                  mounted={item.peer.reactions.length > 0}
+                  mounted={item.peer.reaction.timeLeft > 0}
                   transition="fade"
                   timingFunction="ease"
                 >
@@ -175,8 +175,8 @@ function VideoGrid({ gridItems, sx }: VideoGridProps) {
                       }}
                     >
                       <Emoji
-                        symbol={getSymbol(item.peer.reactions[0])}
-                        label={item.peer.reactions[0]}
+                        symbol={getSymbol(item.peer.reaction.value)}
+                        label={item.peer.reaction.value}
                         size={64}
                         shadow
                         style={{

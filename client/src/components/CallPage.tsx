@@ -35,29 +35,32 @@ import ReactionSelector, { Reaction } from './ReactionSelector';
 import { getServerUrl } from '../App';
 
 type PeerID = string;
+type StreamID = string;
 
-interface Peer {
-  id: string;
+type Peer = {
+  id: PeerID;
   name: string;
   index: number;
   handRaised: boolean;
-  reactions: Reaction[];
-}
+  reaction: ReactionData;
+};
 
-interface GridItem {
+type GridItem = {
   peer: Peer;
   stream: MediaStream | null;
-}
+};
 
-interface StreamOwner {
-  streamId: string;
-  peerId: string;
-}
+type StreamOwner = {
+  streamId: StreamID;
+  peerId: PeerID;
+};
 
 type ReactionData = {
-  reaction: Reaction;
-  peerId: string;
+  value: Reaction;
+  timeLeft: number;
 };
+
+const REACTION_TIMEOUT = 2000;
 
 function initClient(): RtcClient {
   const socket = io(getServerUrl(), { path: '/api/socket.io' });
@@ -80,7 +83,6 @@ function CallPage() {
   const [gridItems, setGridItems] = useState<GridItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [handRaised, setHandRaised] = useState(false);
-  const [reactionBuffer, setReactionBuffer] = useState<ReactionData[]>([]);
 
   const dispatch = useDispatch();
   const userMedia = useSelector(selectUserMedia);
@@ -100,9 +102,9 @@ function CallPage() {
         const localPeer: Peer = {
           id: 'local',
           name: user.name,
-          index: 0,
+          index: -1,
           handRaised: false,
-          reactions: [],
+          reaction: { value: 'like', timeLeft: 0 },
         };
 
         setLocalStream(stream);
@@ -118,8 +120,6 @@ function CallPage() {
   useEffect(() => {
     const socket = client.socket;
     const pc = client.connection;
-
-    let peerIndex = 1;
 
     pc.ontrack = (event) => {
       console.log('Track received', event);
@@ -156,14 +156,14 @@ function CallPage() {
       });
     });
 
-    socket.on('peer-joined', (id: string, name: string) => {
+    socket.on('peer-joined', (id: string, name: string, index: number) => {
       console.info('Peer joined', name, id);
       const peer: Peer = {
         id,
         name,
-        index: peerIndex++,
+        index,
         handRaised: false,
-        reactions: [],
+        reaction: { value: 'like', timeLeft: 0 },
       };
       setPeers((prev) => new Map(prev).set(id, peer));
     });
@@ -179,7 +179,7 @@ function CallPage() {
       setPeers((prev) => {
         const newPeers = new Map(prev);
         peerList.forEach((peer) => {
-          peer.reactions = [];
+          peer.reaction = { value: 'like', timeLeft: 0 };
           newPeers.set(peer.id, peer);
         });
         return newPeers;
@@ -195,18 +195,37 @@ function CallPage() {
     });
 
     socket.on('reaction', (reaction: Reaction, peerId: PeerID) => {
-      setReactionBuffer((prev) => [...prev, { reaction, peerId }]);
       console.log('Reaction received', reaction, peerId);
+      setPeers((prev) => {
+        const newPeers = new Map(prev);
+        const peer = newPeers.get(peerId);
+        if (peer) {
+          if (reaction === 'hand-up') {
+            peer.handRaised = true;
+          } else if (reaction === 'hand-down') {
+            peer.handRaised = false;
+          } else {
+            peer.reaction.value = reaction;
+            peer.reaction.timeLeft++;
+
+            setTimeout(() => {
+              peer.reaction.timeLeft--;
+              setPeers((prev) => new Map(prev).set(peerId, peer));
+            }, REACTION_TIMEOUT);
+          }
+          newPeers.set(peerId, peer);
+        }
+
+        return newPeers;
+      });
     });
 
     socket.emit('join', user.name, roomId);
-    console.log('Joining room', roomId);
 
     return () => {
       socket.off();
       socket.disconnect();
-      localStream.getTracks().forEach((track) => track.stop());
-      client.connection.close();
+      pc.close();
     };
   }, []);
 
@@ -266,37 +285,8 @@ function CallPage() {
     setGridItems(items);
   }, [streams, streamOwners, peers]);
 
-  useEffect(() => {
-    const remainingReactions: ReactionData[] = [];
-
-    reactionBuffer.forEach((data) => {
-      const peer = peers.get(data.peerId);
-      if (peer) {
-        if (data.reaction === 'hand-up') {
-          peer.handRaised = true;
-          setPeers((prev) => new Map(prev).set(peer.id, peer));
-        } else if (data.reaction === 'hand-down') {
-          peer.handRaised = false;
-          setPeers((prev) => new Map(prev).set(peer.id, peer));
-        } else {
-          peer.reactions = [...peer.reactions, data.reaction];
-          setPeers((prev) => new Map(prev).set(peer.id, peer));
-
-          setTimeout(() => {
-            peer.reactions.shift();
-            setPeers((prev) => new Map(prev).set(peer.id, peer));
-          }, 2000);
-        }
-      } else {
-        remainingReactions.push(data);
-      }
-    });
-    setReactionBuffer((prev) =>
-      remainingReactions.length === prev.length ? prev : remainingReactions,
-    );
-  }, [reactionBuffer, peers]);
-
   const endCall = () => {
+    localStream.getTracks().forEach((track) => track.stop());
     dispatch(setUsername(''));
     navigate('/');
   };

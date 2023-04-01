@@ -92,14 +92,6 @@ function JoinScreen() {
 
   useEffect(() => {
     loadUserMedia();
-
-    return () => {
-      console.log('unmounting', localStream.getTracks());
-      // localStream.getTracks().forEach((track) => {
-      //   track.stop();
-      //   console.log('track stopped');
-      // });
-    };
   }, []);
 
   useEffect(() => {
@@ -146,6 +138,7 @@ function JoinScreen() {
   );
 
   const joinRoom = () => {
+    localStream.getVideoTracks().forEach((track) => track.stop());
     dispatch(setUsername(name));
   };
 

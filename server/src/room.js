@@ -15,12 +15,13 @@ class Room {
    * @param {Peer} peer
    */
   addPeer(peer) {
+    peer.index = this.peers.size;
     this.sendPeerListTo(peer);
     this.peers.set(peer.id, peer);
     peer.connection.ontrack = (event) => this.onTrack(event, peer);
     peer.socket.on('disconnect', () => this.onDisconnect(peer));
     peer.socket.on('reaction', (reaction) => this.onReaction(reaction, peer));
-    peer.socket.to(this.id).emit('peer-joined', peer.id, peer.name);
+    peer.socket.to(this.id).emit('peer-joined', peer.id, peer.name, peer.index);
   }
 
   /**
@@ -65,6 +66,7 @@ class Room {
     const peers = Array.from(this.peers).map(([pId, p]) => ({
       id: p.id,
       name: p.name,
+      index: p.index,
       handRaised: p.handRaised,
     }));
 

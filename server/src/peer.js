@@ -26,6 +26,8 @@ class Peer {
     this.makingOffer = false;
     /** @type {string} */
     this.name = name;
+    /** @type {number} */
+    this.index = 0;
 
     this.connection.onicecandidate = (e) => this.onIceCandidate(e.candidate);
     this.connection.onnegotiationneeded = () => this.onNegotiationNeeded();
