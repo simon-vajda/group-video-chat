@@ -33,6 +33,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import ReactionSelector, { Reaction } from './ReactionSelector';
 import { getServerUrl } from '../App';
+import useGridItems from '../hooks/useGridItems';
 
 type PeerID = string;
 type StreamID = string;
@@ -43,11 +44,6 @@ type Peer = {
   index: number;
   handRaised: boolean;
   reaction: ReactionData;
-};
-
-type GridItem = {
-  peer: Peer;
-  stream: MediaStream | null;
 };
 
 type StreamOwner = {
@@ -75,18 +71,20 @@ function CallPage() {
   const [localStream, setLocalStream] = useState<MediaStream>(
     new MediaStream(),
   );
-  const [peers, setPeers] = useState<Map<string, Peer>>(new Map());
-  const [streamOwners, setStreamOwners] = useState<Map<string, string>>(
+  const [peers, setPeers] = useState<Map<PeerID, Peer>>(new Map());
+  const [streamOwners, setStreamOwners] = useState<Map<StreamID, PeerID>>(
     new Map(),
   );
   const [streams, setStreams] = useState<MediaStream[]>([]);
-  const [gridItems, setGridItems] = useState<GridItem[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [handRaised, setHandRaised] = useState(false);
 
   const dispatch = useDispatch();
   const userMedia = useSelector(selectUserMedia);
   const user = useSelector(selectUser);
+
+  const gridItems = useGridItems(streams, peers, streamOwners);
 
   async function initMedia(pc: RTCPeerConnection) {
     navigator.mediaDevices
@@ -241,50 +239,6 @@ function CallPage() {
     });
   }, [userMedia.videoEnabled]);
 
-  useEffect(() => {
-    const items: GridItem[] = [];
-    const peersWithoutStream = new Set(peers.values());
-
-    streams.forEach((stream) => {
-      const peerId = streamOwners.get(stream.id);
-      if (peerId) {
-        const peer = peers.get(peerId);
-        if (peer) {
-          items.push({
-            peer,
-            stream,
-          });
-          peersWithoutStream.delete(peer);
-        }
-      }
-    });
-
-    peersWithoutStream.forEach((peer) => {
-      items.push({
-        peer,
-        stream: null,
-      });
-    });
-
-    items.sort((a, b) => {
-      if (a.peer.id === 'local') {
-        return -1;
-      }
-      if (b.peer.id === 'local') {
-        return 1;
-      }
-      if (a.stream && !b.stream) {
-        return -1;
-      }
-      if (!a.stream && b.stream) {
-        return 1;
-      }
-
-      return a.peer.index - b.peer.index;
-    });
-    setGridItems(items);
-  }, [streams, streamOwners, peers]);
-
   const endCall = () => {
     localStream.getTracks().forEach((track) => track.stop());
     dispatch(setUsername(''));
@@ -392,5 +346,5 @@ function CallPage() {
   );
 }
 
-export type { Peer, GridItem };
+export type { Peer, PeerID, StreamID };
 export default CallPage;

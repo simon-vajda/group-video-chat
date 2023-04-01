@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useMantineTheme } from '@mantine/core';
 import { CSSProperties, useMemo } from 'react';
-import { GridItem } from './CallPage';
+import { GridItem } from '../hooks/useGridItems';
 
 type VideoProps = {
   item: GridItem;

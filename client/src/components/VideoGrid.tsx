@@ -15,7 +15,7 @@ import {
   useMantineTheme,
 } from '@mantine/core';
 import { TbUser } from 'react-icons/tb';
-import { GridItem } from './CallPage';
+import { GridItem } from '../hooks/useGridItems';
 import Emoji from './Emoji';
 import { getSymbol } from './ReactionSelector';
 import Video from './Video';
