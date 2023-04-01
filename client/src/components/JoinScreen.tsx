@@ -38,6 +38,7 @@ import { useDispatch } from 'react-redux/es/hooks/useDispatch';
 import { setUsername } from '../state/userSlice';
 import { useCheckRoomQuery } from '../api/roomApi';
 import { useParams } from 'react-router-dom';
+import useMuter from '../hooks/useMuter';
 
 function JoinScreen() {
   const { id: roomId } = useParams();
@@ -50,6 +51,8 @@ function JoinScreen() {
 
   const dispatch = useDispatch();
   const userMedia = useSelector(selectUserMedia);
+
+  useMuter(localStream);
 
   const {
     data: roomExists,
@@ -93,18 +96,6 @@ function JoinScreen() {
   useEffect(() => {
     loadUserMedia();
   }, []);
-
-  useEffect(() => {
-    localStream.getVideoTracks().forEach((track) => {
-      track.enabled = userMedia.videoEnabled;
-    });
-  }, [userMedia.videoEnabled]);
-
-  useEffect(() => {
-    localStream.getAudioTracks().forEach((track) => {
-      track.enabled = userMedia.audioEnabled;
-    });
-  }, [userMedia.audioEnabled]);
 
   const handleAudioToggle = (turnedOn: boolean) => {
     dispatch(toggleAudio());

@@ -34,6 +34,7 @@ import { notifications } from '@mantine/notifications';
 import ReactionSelector, { Reaction } from './ReactionSelector';
 import { getServerUrl } from '../App';
 import useGridItems from '../hooks/useGridItems';
+import useMuter from '../hooks/useMuter';
 
 type PeerID = string;
 type StreamID = string;
@@ -85,6 +86,7 @@ function CallPage() {
   const user = useSelector(selectUser);
 
   const gridItems = useGridItems(streams, peers, streamOwners);
+  useMuter(localStream);
 
   async function initMedia(pc: RTCPeerConnection) {
     navigator.mediaDevices
@@ -226,18 +228,6 @@ function CallPage() {
       pc.close();
     };
   }, []);
-
-  useEffect(() => {
-    localStream.getAudioTracks().forEach((track) => {
-      track.enabled = userMedia.audioEnabled;
-    });
-  }, [userMedia.audioEnabled]);
-
-  useEffect(() => {
-    localStream.getVideoTracks().forEach((track) => {
-      track.enabled = userMedia.videoEnabled;
-    });
-  }, [userMedia.videoEnabled]);
 
   const endCall = () => {
     localStream.getTracks().forEach((track) => track.stop());
