@@ -81,6 +81,7 @@ function ChatPanel({ onSubmit, onClose, sx }: ChatPanelProps) {
         onSubmit={handleSubmit}
         style={{
           margin: theme.spacing.sm,
+          marginTop: theme.spacing.lg,
         }}
       >
         <Flex direction="row" align="center">
@@ -89,6 +90,7 @@ function ChatPanel({ onSubmit, onClose, sx }: ChatPanelProps) {
             value={message}
             onChange={(e) => setMessage(e.currentTarget.value)}
             ref={inputRef}
+            size="md"
             sx={{
               flexGrow: 1,
             }}
