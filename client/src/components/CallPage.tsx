@@ -41,28 +41,36 @@ import useGridItems from '../hooks/useGridItems';
 import useMuter from '../hooks/useMuter';
 import ChatPanel from './ChatPanel';
 import { useMediaQuery } from '@mantine/hooks';
-import ChatDrawer from './ChatDrawer';
+import ChatDialog from './ChatDialog';
+import { addChatItem, setChatItems } from '../state/chatSlice';
+import { ChatItem } from './ChatList';
 
 type PeerID = string;
 type StreamID = string;
 
-type Peer = {
+interface Peer {
   id: PeerID;
   name: string;
   index: number;
   handRaised: boolean;
   reaction: ReactionData;
-};
+}
 
-type StreamOwner = {
+interface StreamOwner {
   streamId: StreamID;
   peerId: PeerID;
-};
+}
 
-type ReactionData = {
+interface ReactionData {
   value: Reaction;
   timeLeft: number;
-};
+}
+
+interface ChatItemData {
+  authorId: PeerID;
+  message: string;
+  timeStamp: number;
+}
 
 const REACTION_TIMEOUT = 2000;
 
@@ -183,26 +191,49 @@ function CallPage() {
       setStreamOwners((prev) => new Map(prev).set(streamId, peerId));
     });
 
-    socket.on('peers', (peerList: Peer[], ownerList: StreamOwner[]) => {
-      console.log('Peers in room already', peerList);
+    socket.on(
+      'room-state',
+      (
+        peerList: Peer[],
+        ownerList: StreamOwner[],
+        messageList: ChatItemData[],
+      ) => {
+        console.log('Peers in room already', peerList);
+        console.log('Messages in room already', messageList);
 
-      setPeers((prev) => {
-        const newPeers = new Map(prev);
-        peerList.forEach((peer) => {
-          peer.reaction = { value: 'like', timeLeft: 0 };
-          newPeers.set(peer.id, peer);
-        });
-        return newPeers;
-      });
+        setPeers((prev) => {
+          const newPeers = new Map(prev);
+          const chatItems: ChatItem[] = [];
 
-      setStreamOwners((prev) => {
-        const newOwners = new Map(prev);
-        ownerList.forEach((owner) => {
-          newOwners.set(owner.streamId, owner.peerId);
+          peerList.forEach((peer) => {
+            peer.reaction = { value: 'like', timeLeft: 0 };
+            newPeers.set(peer.id, peer);
+          });
+
+          messageList.forEach((m) => {
+            const peer = newPeers.get(m.authorId);
+            if (peer) {
+              chatItems.push({
+                author: peer,
+                message: m.message,
+                timeStamp: m.timeStamp,
+              });
+            }
+          });
+          dispatch(setChatItems(chatItems));
+
+          return newPeers;
         });
-        return newOwners;
-      });
-    });
+
+        setStreamOwners((prev) => {
+          const newOwners = new Map(prev);
+          ownerList.forEach((owner) => {
+            newOwners.set(owner.streamId, owner.peerId);
+          });
+          return newOwners;
+        });
+      },
+    );
 
     socket.on('reaction', (reaction: Reaction, peerId: PeerID) => {
       console.log('Reaction received', reaction, peerId);
@@ -227,6 +258,24 @@ function CallPage() {
         }
 
         return newPeers;
+      });
+    });
+
+    socket.on('message', (data: ChatItemData) => {
+      console.log('Message received', data);
+      setPeers((prev) => {
+        const peer = prev.get(data.authorId);
+        if (peer) {
+          dispatch(
+            addChatItem({
+              author: peer,
+              message: data.message,
+              timeStamp: data.timeStamp,
+            }),
+          );
+        }
+
+        return prev;
       });
     });
 
@@ -268,6 +317,14 @@ function CallPage() {
     });
   }
 
+  function sendMessage(message: string) {
+    client.sendMessage(message);
+  }
+
+  function closeChat() {
+    setChatOpen(false);
+  }
+
   return (
     <Container
       fluid
@@ -295,7 +352,6 @@ function CallPage() {
         )}
         {largeScreen ? (
           <Paper
-            p="md"
             ml="md"
             sx={{
               width: '350px',
@@ -303,10 +359,14 @@ function CallPage() {
               display: chatOpen ? 'block' : 'none',
             }}
           >
-            <ChatPanel onClose={() => setChatOpen(false)} />
+            <ChatPanel onSubmit={sendMessage} onClose={closeChat} />
           </Paper>
         ) : (
-          <ChatDrawer opened={chatOpen} onClose={() => setChatOpen(false)} />
+          <ChatDialog
+            opened={chatOpen}
+            onSubmit={sendMessage}
+            onClose={closeChat}
+          />
         )}
       </Box>
       <Group position="apart" align="end" mt="md">

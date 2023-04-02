@@ -43,7 +43,7 @@ class Peer {
   onIceCandidate(iceCandidate) {
     if (iceCandidate && iceCandidate.candidate !== '') {
       this.socket.emit('icecandidate', iceCandidate);
-      logger.trace(`Candidate sent to: ${this.id}`);
+      logger.trace(`Candidate sent to: ${this}`);
     }
   }
 
@@ -52,17 +52,17 @@ class Peer {
   }
 
   onConnectionStateChange() {
-    logger.trace(`Peer state: ${this.connection.connectionState} ${this.id}`);
+    logger.trace(`Peer ${this} state: ${this.connection.connectionState}`);
   }
 
   async sendOffer() {
     if (this.makingOffer) {
-      logger.trace(`Already making offer: ${this.id}`);
+      logger.trace(`Already making offer: ${this}`);
       return;
     }
 
     if (this.connection.signalingState !== 'stable') {
-      logger.trace(`Signaling state not stable: ${this.id}`);
+      logger.trace(`Signaling state not stable: ${this}`);
       return;
     }
 
@@ -71,7 +71,7 @@ class Peer {
       const offer = await this.connection.createOffer();
       await this.connection.setLocalDescription(offer);
       this.socket.emit('offer', this.connection.localDescription);
-      logger.trace(`Offer sent to: ${this.id}`);
+      logger.trace(`Offer sent to: ${this}`);
     } catch (err) {
       logger.error(err);
     } finally {
@@ -80,12 +80,12 @@ class Peer {
   }
 
   async onAnswerReceived(answer) {
-    logger.trace(`Answer from: ${this.id}`);
+    logger.trace(`Answer from: ${this}`);
     await this.connection.setRemoteDescription(answer);
   }
 
   async onCandidateReceived(candidate) {
-    logger.trace(`Candidate from: ${this.id}`);
+    logger.trace(`Candidate from: ${this}`);
     try {
       await this.connection.addIceCandidate(candidate);
     } catch (err) {
@@ -95,12 +95,12 @@ class Peer {
   }
 
   async onOfferReceived(offer) {
-    logger.trace(`Offer from: ${this.id}`);
+    logger.trace(`Offer from: ${this}`);
     const offerCollision =
       this.makingOffer || this.connection.signalingState !== 'stable';
 
     if (offerCollision) {
-      logger.warn(`Offer collision: ${this.id}`);
+      logger.warn(`Offer collision: ${this}`);
       return;
     }
 
@@ -112,7 +112,11 @@ class Peer {
     // );
     await this.connection.setLocalDescription(answer);
     this.socket.emit('answer', answer);
-    logger.trace(`Answer sent to: ${this.id}`);
+    logger.trace(`Answer sent to: ${this}`);
+  }
+
+  toString() {
+    return `${this.name} (${this.id})`;
   }
 }
 

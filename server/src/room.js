@@ -9,6 +9,7 @@ class Room {
     this.peers = new Map();
     /** @type {Map<string, MediaStream>} */
     this.streams = new Map();
+    this.messages = [];
   }
 
   /**
@@ -16,11 +17,12 @@ class Room {
    */
   addPeer(peer) {
     peer.index = this.peers.size;
-    this.sendPeerListTo(peer);
+    this.sendRoomStateTo(peer);
     this.peers.set(peer.id, peer);
     peer.connection.ontrack = (event) => this.onTrack(event, peer);
     peer.socket.on('disconnect', () => this.onDisconnect(peer));
     peer.socket.on('reaction', (reaction) => this.onReaction(reaction, peer));
+    peer.socket.on('message', (message) => this.onMessage(message, peer));
     peer.socket.to(this.id).emit('peer-joined', peer.id, peer.name, peer.index);
   }
 
@@ -30,7 +32,7 @@ class Room {
    */
   onTrack(event, peer) {
     logger.trace(
-      `Track ${event.track.kind}, streamId: ${event.streams[0].id} from peer: ${peer.id}`,
+      `Track ${event.track.kind}, streamId: ${event.streams[0].id} from peer: ${peer}`,
     );
 
     if (!this.streams.has(peer.id)) {
@@ -54,7 +56,7 @@ class Room {
 
   /** @param {Peer} peer */
   onDisconnect(peer) {
-    logger.info(`Peer disconnected: ${peer.id}`);
+    logger.info(`Peer disconnected: ${peer}`);
     peer.socket.to(this.id).emit('peer-left', peer.id);
     peer.connection.close();
     this.peers.delete(peer.id);
@@ -62,7 +64,7 @@ class Room {
   }
 
   /** @param {Peer} peer */
-  sendPeerListTo(peer) {
+  sendRoomStateTo(peer) {
     const peers = Array.from(this.peers).map(([pId, p]) => ({
       id: p.id,
       name: p.name,
@@ -75,7 +77,7 @@ class Room {
       peerId,
     }));
 
-    peer.socket.emit('peers', peers, streamOwners);
+    peer.socket.emit('room-state', peers, streamOwners, this.messages);
   }
 
   /**
@@ -83,12 +85,27 @@ class Room {
    * @param {Peer} peer
    */
   onReaction(reaction, peer) {
-    logger.trace(`Reaction: ${reaction} from peer: ${peer.id}`);
+    logger.trace(`Reaction in room ${this.id} from peer: ${peer}: ${reaction}`);
 
     if (reaction === 'hand-up') peer.handRaised = true;
     if (reaction === 'hand-down') peer.handRaised = false;
 
     peer.socket.to(this.id).emit('reaction', reaction, peer.id);
+  }
+
+  /**
+   * @param {string} message
+   * @param {Peer} peer
+   */
+  onMessage(message, peer) {
+    logger.trace(`Message in room ${this.id} from peer: ${peer}`);
+    const chatItem = {
+      authorId: peer.id,
+      message,
+      timeStamp: Date.now(),
+    };
+    peer.socket.to(this.id).emit('message', chatItem);
+    this.messages.push(chatItem);
   }
 
   /** @returns {string} */

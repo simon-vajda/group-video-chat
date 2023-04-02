@@ -92,6 +92,10 @@ class RtcClient {
   sendReaction(reaction: Reaction) {
     this.socket.emit('reaction', reaction);
   }
+
+  sendMessage(message: string) {
+    this.socket.emit('message', message);
+  }
 }
 
 export default RtcClient;

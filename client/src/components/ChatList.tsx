@@ -1,21 +1,23 @@
-import { ScrollArea, Stack, Sx } from '@mantine/core';
+import { Box, Stack, Sx } from '@mantine/core';
 import { Peer } from './CallPage';
 import ChatBubble from './ChatBubble';
 import { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import { selectChat } from '../state/chatSlice';
 
-type ChatItem = {
+interface ChatItem {
   author: Peer;
   message: string;
   timeStamp: number;
-};
+}
 
-type ChatListProps = {
-  chatItems: ChatItem[];
+interface ChatListProps {
   sx?: Sx;
-};
+}
 
-function ChatList({ chatItems, sx }: ChatListProps) {
+function ChatList({ sx }: ChatListProps) {
   const viewport = useRef<HTMLDivElement>(null);
+  const chatItems = useSelector(selectChat).chatItems;
 
   useEffect(() => {
     if (viewport.current) {
@@ -27,20 +29,33 @@ function ChatList({ chatItems, sx }: ChatListProps) {
   }, [chatItems]);
 
   return (
-    <ScrollArea
-      offsetScrollbars
-      viewportRef={viewport}
+    <Box
       sx={{
+        position: 'relative',
+        height: '100%',
         ...sx,
       }}
     >
       <Stack
         spacing={4}
         sx={{
-          height: '100%',
-          // overflow: 'auto',
-          paddingRight: 4,
+          paddingRight: 8,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          overflowY: 'auto',
+          maxHeight: '100%',
+          '&::-webkit-scrollbar': {
+            width: '0.5rem',
+          },
+
+          '&::-webkit-scrollbar-thumb': {
+            borderRadius: '0.625rem',
+            background: 'rgba(255, 255, 255, 0.4)',
+          },
         }}
+        ref={viewport}
       >
         {chatItems.map((item, index) => {
           const prevItem = index > 0 ? chatItems[index - 1] : undefined;
@@ -57,7 +72,7 @@ function ChatList({ chatItems, sx }: ChatListProps) {
           );
         })}
       </Stack>
-    </ScrollArea>
+    </Box>
   );
 }
 

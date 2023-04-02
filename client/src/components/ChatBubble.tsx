@@ -63,7 +63,9 @@ function ChatBubble({ chatItem, prevItem, nextItem }: ChatBubbleProps) {
           sx={{
             display: 'inline-block',
             marginLeft: 8,
-            marginBottom: 4,
+            marginBottom: 2,
+            marginTop: 6,
+            whiteSpace: 'pre-wrap',
           }}
         >
           {chatItem.author.name}
@@ -80,9 +82,17 @@ function ChatBubble({ chatItem, prevItem, nextItem }: ChatBubbleProps) {
             padding: '4px 12px',
             borderRadius: getBubbleRadius(ownMessage, hasPrevious, hasNext),
             maxWidth: '80%',
+            marginTop: !hasPrevious && ownMessage ? 8 : 0,
           }}
         >
-          <Text align="start">{chatItem.message}</Text>
+          <Text
+            align="start"
+            sx={{
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            {chatItem.message}
+          </Text>
         </Paper>
       </Tooltip>
     </Flex>

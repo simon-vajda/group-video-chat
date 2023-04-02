@@ -16,7 +16,7 @@ function handleConnection(socket) {
     const peer = new Peer(socket, name);
     const room = rooms.get(roomId);
     room.addPeer(peer);
-    logger.info(`Peer joined: ${peer.name} (${peer.id})`);
+    logger.info(`Peer joined: ${peer} to room: ${room.id}`);
   });
 }
 
