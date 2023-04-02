@@ -241,20 +241,23 @@ function CallPage() {
         const newPeers = new Map(prev);
         const peer = newPeers.get(peerId);
         if (peer) {
+          const newPeer = { ...peer };
           if (reaction === 'hand-up') {
-            peer.handRaised = true;
+            newPeer.handRaised = true;
           } else if (reaction === 'hand-down') {
-            peer.handRaised = false;
+            newPeer.handRaised = false;
           } else {
-            peer.reaction.value = reaction;
-            peer.reaction.timeLeft++;
+            newPeer.reaction = {
+              ...newPeer.reaction,
+              value: reaction,
+              timeLeft: newPeer.reaction.timeLeft + 1,
+            };
 
             setTimeout(() => {
-              peer.reaction.timeLeft--;
-              setPeers((prev) => new Map(prev).set(peerId, peer));
+              removeReaction(peerId);
             }, REACTION_TIMEOUT);
           }
-          newPeers.set(peerId, peer);
+          newPeers.set(peerId, newPeer);
         }
 
         return newPeers;
@@ -287,6 +290,22 @@ function CallPage() {
       pc.close();
     };
   }, []);
+
+  function removeReaction(peerId: PeerID) {
+    setPeers((prev) => {
+      const newPeers = new Map(prev);
+      const peer = newPeers.get(peerId);
+      if (peer) {
+        const newPeer = { ...peer };
+        newPeer.reaction = {
+          ...newPeer.reaction,
+          timeLeft: newPeer.reaction.timeLeft - 1,
+        };
+        newPeers.set(peerId, newPeer);
+      }
+      return newPeers;
+    });
+  }
 
   const endCall = () => {
     localStream.getTracks().forEach((track) => track.stop());
