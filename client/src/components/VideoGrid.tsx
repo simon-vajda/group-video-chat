@@ -100,6 +100,7 @@ function VideoGrid({ gridItems, sx }: VideoGridProps) {
     <Grid
       justify="center"
       sx={{
+        padding: 0,
         overflow: 'auto',
         ...sx,
       }}

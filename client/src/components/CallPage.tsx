@@ -1,12 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
   ActionIcon,
+  Box,
   Button,
   Center,
   Container,
   Group,
   Loader,
+  Paper,
   Text,
+  useMantineTheme,
 } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import {
@@ -18,6 +21,7 @@ import {
   TbShare2,
   TbHandStop,
   TbLink,
+  TbMessage,
 } from 'react-icons/tb';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
@@ -35,6 +39,9 @@ import ReactionSelector, { Reaction } from './ReactionSelector';
 import { getServerUrl } from '../App';
 import useGridItems from '../hooks/useGridItems';
 import useMuter from '../hooks/useMuter';
+import ChatPanel from './ChatPanel';
+import { useMediaQuery } from '@mantine/hooks';
+import ChatDrawer from './ChatDrawer';
 
 type PeerID = string;
 type StreamID = string;
@@ -79,12 +86,15 @@ function CallPage() {
   );
   const [loading, setLoading] = useState(true);
   const [handRaised, setHandRaised] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const dispatch = useDispatch();
   const userMedia = useSelector(selectUserMedia);
   const user = useSelector(selectUser);
 
   const gridItems = useGridItems(streams, peers, streamOwners);
+  const theme = useMantineTheme();
+  const largeScreen = useMediaQuery(`(min-width: ${theme.breakpoints.sm})`);
   useMuter(localStream);
 
   async function initMedia(pc: RTCPeerConnection) {
@@ -267,17 +277,38 @@ function CallPage() {
         height: '100%',
       }}
     >
-      {loading ? (
-        <Center
-          sx={{
-            flexGrow: 1,
-          }}
-        >
-          <Loader />
-        </Center>
-      ) : (
-        <VideoGrid gridItems={gridItems} sx={{ flexGrow: 1 }} />
-      )}
+      <Box
+        sx={{
+          minHeight: '350px',
+          height: '100%',
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'row',
+        }}
+      >
+        {loading ? (
+          <Center w="100%">
+            <Loader />
+          </Center>
+        ) : (
+          <VideoGrid gridItems={gridItems} sx={{ flexGrow: 1 }} />
+        )}
+        {largeScreen ? (
+          <Paper
+            p="md"
+            ml="md"
+            sx={{
+              width: '350px',
+              minWidth: '350px',
+              display: chatOpen ? 'block' : 'none',
+            }}
+          >
+            <ChatPanel onClose={() => setChatOpen(false)} />
+          </Paper>
+        ) : (
+          <ChatDrawer opened={chatOpen} onClose={() => setChatOpen(false)} />
+        )}
+      </Box>
       <Group position="apart" align="end" mt="md">
         <Group spacing={6} align="center">
           <Text
@@ -326,6 +357,13 @@ function CallPage() {
             ) : (
               <TbVideoOff size={24} />
             )}
+          </ActionIcon>
+          <ActionIcon
+            size="xl"
+            variant="filled"
+            onClick={() => setChatOpen((prev) => !prev)}
+          >
+            <TbMessage size={24} />
           </ActionIcon>
         </Group>
         <Button color="red" leftIcon={<TbPhoneX size={16} />} onClick={endCall}>

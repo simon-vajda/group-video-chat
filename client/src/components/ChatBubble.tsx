@@ -1,11 +1,4 @@
-import {
-  Box,
-  Flex,
-  Paper,
-  Text,
-  Tooltip,
-  useMantineTheme,
-} from '@mantine/core';
+import { Flex, Paper, Text, Tooltip, useMantineTheme } from '@mantine/core';
 import { ChatItem } from './ChatList';
 import moment from 'moment';
 
