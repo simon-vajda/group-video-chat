@@ -42,7 +42,14 @@ import useMuter from '../hooks/useMuter';
 import ChatPanel from './ChatPanel';
 import { useMediaQuery } from '@mantine/hooks';
 import ChatDialog from './ChatDialog';
-import { addChatItem, setChatItems } from '../state/chatSlice';
+import {
+  addChatItem,
+  selectCall,
+  setChatItems,
+  setChatOpen,
+  setHandRaised,
+  toggleChatOpen,
+} from '../state/callSlice';
 import { ChatItem } from './ChatList';
 
 type PeerID = string;
@@ -73,6 +80,7 @@ interface ChatItemData {
 }
 
 const REACTION_TIMEOUT = 2000;
+const NOTIFICATION_TIMEOUT = 3000;
 
 function initClient(): RtcClient {
   const socket = io(getServerUrl(), { path: '/api/socket.io' });
@@ -93,12 +101,11 @@ function CallPage() {
     new Map(),
   );
   const [loading, setLoading] = useState(true);
-  const [handRaised, setHandRaised] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
 
   const dispatch = useDispatch();
   const userMedia = useSelector(selectUserMedia);
   const user = useSelector(selectUser);
+  const { chatOpen, handRaised } = useSelector(selectCall);
 
   const gridItems = useGridItems(streams, peers, streamOwners);
   const theme = useMantineTheme();
@@ -264,24 +271,6 @@ function CallPage() {
       });
     });
 
-    socket.on('message', (data: ChatItemData) => {
-      console.log('Message received', data);
-      setPeers((prev) => {
-        const peer = prev.get(data.authorId);
-        if (peer) {
-          dispatch(
-            addChatItem({
-              author: peer,
-              message: data.message,
-              timeStamp: data.timeStamp,
-            }),
-          );
-        }
-
-        return prev;
-      });
-    });
-
     socket.emit('join', user.name, roomId);
 
     return () => {
@@ -290,6 +279,46 @@ function CallPage() {
       pc.close();
     };
   }, []);
+
+  useEffect(() => {
+    client.socket.on('message', (data: ChatItemData) => {
+      console.log('Message received', data);
+      const peer = peers.get(data.authorId);
+      if (peer) {
+        const chatItem = {
+          author: peer,
+          message: data.message,
+          timeStamp: data.timeStamp,
+        };
+        dispatch(addChatItem(chatItem));
+
+        if (!chatOpen) {
+          notifications.show({
+            title: chatItem.author.name,
+            message: truncate(chatItem.message, 60),
+            icon: <TbMessage size={20} />,
+            autoClose: NOTIFICATION_TIMEOUT,
+            withCloseButton: false,
+            sx: {
+              cursor: 'pointer',
+            },
+            onClick: () => {
+              dispatch(setChatOpen(true));
+              notifications.clean();
+            },
+          });
+        }
+      }
+    });
+
+    return () => {
+      client.socket.off('message');
+    };
+  }, [peers, chatOpen]);
+
+  function truncate(str: string, n: number) {
+    return str.length > n ? str.substring(0, n - 1) + '...' : str;
+  }
 
   function removeReaction(peerId: PeerID) {
     setPeers((prev) => {
@@ -329,11 +358,9 @@ function CallPage() {
   }
 
   function toggleHandRaise() {
-    setHandRaised((prev) => {
-      const newValue = !prev;
-      client.sendReaction(newValue ? 'hand-up' : 'hand-down');
-      return newValue;
-    });
+    const newValue = !handRaised;
+    client.sendReaction(newValue ? 'hand-up' : 'hand-down');
+    dispatch(setHandRaised(newValue));
   }
 
   function sendMessage(message: string) {
@@ -341,7 +368,7 @@ function CallPage() {
   }
 
   function closeChat() {
-    setChatOpen(false);
+    dispatch(setChatOpen(false));
   }
 
   return (
@@ -440,7 +467,7 @@ function CallPage() {
           <ActionIcon
             size="xl"
             variant="filled"
-            onClick={() => setChatOpen((prev) => !prev)}
+            onClick={() => dispatch(toggleChatOpen())}
           >
             <TbMessage size={24} />
           </ActionIcon>

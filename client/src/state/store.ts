@@ -3,13 +3,13 @@ import { setupListeners } from '@reduxjs/toolkit/dist/query';
 import { roomApi } from '../api/roomApi';
 import userMediaSlice from './userMediaSlice';
 import userSlice from './userSlice';
-import chatSlice from './chatSlice';
+import callSlice from './callSlice';
 
 const store = configureStore({
   reducer: {
     [userMediaSlice.name]: userMediaSlice.reducer,
     [userSlice.name]: userSlice.reducer,
-    [chatSlice.name]: chatSlice.reducer,
+    [callSlice.name]: callSlice.reducer,
     [roomApi.reducerPath]: roomApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

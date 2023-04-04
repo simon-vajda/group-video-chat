@@ -3,7 +3,7 @@ import { Peer } from './CallPage';
 import ChatBubble from './ChatBubble';
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { selectChat } from '../state/chatSlice';
+import { selectCall } from '../state/callSlice';
 
 interface ChatItem {
   author: Peer;
@@ -17,7 +17,7 @@ interface ChatListProps {
 
 function ChatList({ sx }: ChatListProps) {
   const viewport = useRef<HTMLDivElement>(null);
-  const chatItems = useSelector(selectChat).chatItems;
+  const chatItems = useSelector(selectCall).chatItems;
 
   useEffect(() => {
     if (viewport.current) {

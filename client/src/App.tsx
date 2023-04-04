@@ -60,6 +60,11 @@ function App() {
                 },
               }),
             },
+            Notification: {
+              defaultProps: {
+                radius: 'md',
+              },
+            },
           },
         }}
       >

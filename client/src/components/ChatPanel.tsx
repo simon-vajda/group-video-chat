@@ -14,7 +14,7 @@ import ChatList from './ChatList';
 import { IoSend } from 'react-icons/io5';
 import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addChatItem } from '../state/chatSlice';
+import { addChatItem } from '../state/callSlice';
 import { selectUser } from '../state/userSlice';
 
 interface ChatPanelProps {
