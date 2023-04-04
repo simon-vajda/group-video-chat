@@ -1,4 +1,11 @@
-import { Flex, Paper, Text, Tooltip, useMantineTheme } from '@mantine/core';
+import {
+  Box,
+  Flex,
+  Paper,
+  Text,
+  Tooltip,
+  useMantineTheme,
+} from '@mantine/core';
 import { ChatItem } from './ChatList';
 import moment from 'moment';
 
@@ -43,59 +50,77 @@ type ChatBubbleProps = {
   nextItem?: ChatItem;
 };
 
+const SESSION_TIMEOUT = 120000;
+
 function ChatBubble({ chatItem, prevItem, nextItem }: ChatBubbleProps) {
   const theme = useMantineTheme();
 
   const ownMessage = chatItem.author.id === 'local';
-  const hasPrevious = prevItem?.author.id === chatItem.author.id;
-  const hasNext = nextItem?.author.id === chatItem.author.id;
+  const sessionStart =
+    chatItem.timeStamp - (prevItem?.timeStamp || 0) > SESSION_TIMEOUT;
+  const sessionEnd =
+    nextItem && nextItem.timeStamp - chatItem.timeStamp > SESSION_TIMEOUT;
+  const hasPrevious =
+    !sessionStart && prevItem?.author.id === chatItem.author.id;
+  const hasNext = !sessionEnd && nextItem?.author.id === chatItem.author.id;
   const timeStamp = moment(chatItem.timeStamp).format('HH:mm');
 
   return (
-    <Flex
-      direction="column"
-      align={ownMessage ? 'flex-end' : 'flex-start'}
-      w="100%"
+    <Box
+      sx={{
+        textAlign: 'center',
+      }}
     >
-      {!hasPrevious && !ownMessage && (
-        <Text
-          fz="sm"
-          sx={{
-            display: 'inline-block',
-            marginLeft: 8,
-            marginBottom: 2,
-            marginTop: 6,
-            whiteSpace: 'pre-wrap',
-          }}
-        >
-          {chatItem.author.name}
+      {sessionStart && (
+        <Text c="dimmed" fz="xs" mt={4}>
+          {timeStamp}
         </Text>
       )}
-      <Tooltip label={timeStamp}>
-        <Paper
-          sx={{
-            backgroundColor: ownMessage
-              ? theme.colors.blue[8]
-              : theme.colors.dark[4],
-            color: theme.white,
-            display: 'inline-block',
-            padding: '4px 12px',
-            borderRadius: getBubbleRadius(ownMessage, hasPrevious, hasNext),
-            maxWidth: '80%',
-            marginTop: !hasPrevious && ownMessage ? 8 : 0,
-          }}
-        >
+      <Flex
+        direction="column"
+        align={ownMessage ? 'flex-end' : 'flex-start'}
+        w="100%"
+      >
+        {!hasPrevious && !ownMessage && (
           <Text
-            align="start"
+            fz="sm"
             sx={{
+              display: 'inline-block',
+              marginLeft: 8,
+              marginBottom: 2,
+              marginTop: 6,
               whiteSpace: 'pre-wrap',
             }}
           >
-            {chatItem.message}
+            {chatItem.author.name}
           </Text>
-        </Paper>
-      </Tooltip>
-    </Flex>
+        )}
+        <Tooltip label={timeStamp}>
+          <Paper
+            sx={{
+              backgroundColor: ownMessage
+                ? theme.colors.blue[8]
+                : theme.colors.dark[4],
+              color: theme.white,
+              display: 'inline-block',
+              padding: '4px 12px',
+              borderRadius: getBubbleRadius(ownMessage, hasPrevious, hasNext),
+              maxWidth: '80%',
+              marginTop: !hasPrevious && ownMessage ? 8 : 0,
+            }}
+          >
+            <Text
+              align="start"
+              sx={{
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {chatItem.message}
+            </Text>
+          </Paper>
+        </Tooltip>
+      </Flex>
+    </Box>
   );
 }
 
