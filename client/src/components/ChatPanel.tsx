@@ -36,16 +36,8 @@ function ChatPanel({ onSubmit, onClose, sx }: ChatPanelProps) {
     onSubmit(message);
     dispatch(
       addChatItem({
-        author: {
-          id: 'local',
-          name: user.name,
-          index: -1,
-          handRaised: false,
-          reaction: {
-            value: 'like',
-            timeLeft: 0,
-          },
-        },
+        authorId: 'local',
+        author: user.name,
         message,
         timeStamp: Date.now(),
       }),

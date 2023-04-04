@@ -1,9 +1,10 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { Peer } from '../components/CallPage';
+import { PeerID } from '../components/CallPage';
 import { RootState } from './store';
 
-type ChatItem = {
-  author: Peer;
+export type ChatItem = {
+  authorId: PeerID;
+  author: string;
   message: string;
   timeStamp: number;
 };

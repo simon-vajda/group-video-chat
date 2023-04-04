@@ -6,7 +6,7 @@ import {
   Tooltip,
   useMantineTheme,
 } from '@mantine/core';
-import { ChatItem } from './ChatList';
+import { ChatItem } from '../state/callSlice';
 import moment from 'moment';
 
 function getBubbleRadius(
@@ -55,24 +55,24 @@ const SESSION_TIMEOUT = 120000;
 function ChatBubble({ chatItem, prevItem, nextItem }: ChatBubbleProps) {
   const theme = useMantineTheme();
 
-  const ownMessage = chatItem.author.id === 'local';
+  const ownMessage = chatItem.authorId === 'local';
   const sessionStart =
     chatItem.timeStamp - (prevItem?.timeStamp || 0) > SESSION_TIMEOUT;
   const sessionEnd =
     nextItem && nextItem.timeStamp - chatItem.timeStamp > SESSION_TIMEOUT;
-  const hasPrevious =
-    !sessionStart && prevItem?.author.id === chatItem.author.id;
-  const hasNext = !sessionEnd && nextItem?.author.id === chatItem.author.id;
+  const hasPrevious = !sessionStart && prevItem?.authorId === chatItem.authorId;
+  const hasNext = !sessionEnd && nextItem?.authorId === chatItem.authorId;
   const timeStamp = moment(chatItem.timeStamp).format('HH:mm');
 
   return (
     <Box
       sx={{
         textAlign: 'center',
+        marginTop: !hasPrevious && !ownMessage ? 8 : 0,
       }}
     >
       {sessionStart && (
-        <Text c="dimmed" fz="xs" mt={4}>
+        <Text c="dimmed" fz="xs" mt={8} mb={8}>
           {timeStamp}
         </Text>
       )}
@@ -87,12 +87,12 @@ function ChatBubble({ chatItem, prevItem, nextItem }: ChatBubbleProps) {
             sx={{
               display: 'inline-block',
               marginLeft: 8,
+              marginTop: sessionStart ? 0 : 6,
               marginBottom: 2,
-              marginTop: 6,
               whiteSpace: 'pre-wrap',
             }}
           >
-            {chatItem.author.name}
+            {chatItem.author}
           </Text>
         )}
         <Tooltip label={timeStamp}>
@@ -106,7 +106,7 @@ function ChatBubble({ chatItem, prevItem, nextItem }: ChatBubbleProps) {
               padding: '4px 12px',
               borderRadius: getBubbleRadius(ownMessage, hasPrevious, hasNext),
               maxWidth: '80%',
-              marginTop: !hasPrevious && ownMessage ? 8 : 0,
+              marginTop: ownMessage && !sessionStart && !hasPrevious ? 8 : 0,
             }}
           >
             <Text

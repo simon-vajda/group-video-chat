@@ -101,6 +101,7 @@ class Room {
     logger.trace(`Message in room ${this.id} from peer: ${peer}`);
     const chatItem = {
       authorId: peer.id,
+      author: peer.name,
       message,
       timeStamp: Date.now(),
     };

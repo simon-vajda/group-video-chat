@@ -50,7 +50,7 @@ import {
   setHandRaised,
   toggleChatOpen,
 } from '../state/callSlice';
-import { ChatItem } from './ChatList';
+import { ChatItem } from '../state/callSlice';
 
 type PeerID = string;
 type StreamID = string;
@@ -71,12 +71,6 @@ interface StreamOwner {
 interface ReactionData {
   value: Reaction;
   timeLeft: number;
-}
-
-interface ChatItemData {
-  authorId: PeerID;
-  message: string;
-  timeStamp: number;
 }
 
 const REACTION_TIMEOUT = 2000;
@@ -200,34 +194,19 @@ function CallPage() {
 
     socket.on(
       'room-state',
-      (
-        peerList: Peer[],
-        ownerList: StreamOwner[],
-        messageList: ChatItemData[],
-      ) => {
+      (peerList: Peer[], ownerList: StreamOwner[], messageList: ChatItem[]) => {
         console.log('Peers in room already', peerList);
         console.log('Messages in room already', messageList);
 
         setPeers((prev) => {
           const newPeers = new Map(prev);
-          const chatItems: ChatItem[] = [];
 
           peerList.forEach((peer) => {
             peer.reaction = { value: 'like', timeLeft: 0 };
             newPeers.set(peer.id, peer);
           });
 
-          messageList.forEach((m) => {
-            const peer = newPeers.get(m.authorId);
-            if (peer) {
-              chatItems.push({
-                author: peer,
-                message: m.message,
-                timeStamp: m.timeStamp,
-              });
-            }
-          });
-          dispatch(setChatItems(chatItems));
+          dispatch(setChatItems(messageList));
 
           return newPeers;
         });
@@ -281,40 +260,32 @@ function CallPage() {
   }, []);
 
   useEffect(() => {
-    client.socket.on('message', (data: ChatItemData) => {
-      console.log('Message received', data);
-      const peer = peers.get(data.authorId);
-      if (peer) {
-        const chatItem = {
-          author: peer,
-          message: data.message,
-          timeStamp: data.timeStamp,
-        };
-        dispatch(addChatItem(chatItem));
+    client.socket.on('message', (chatItem: ChatItem) => {
+      console.log('Message received', chatItem);
+      dispatch(addChatItem(chatItem));
 
-        if (!chatOpen) {
-          notifications.show({
-            title: chatItem.author.name,
-            message: truncate(chatItem.message, 60),
-            icon: <TbMessage size={20} />,
-            autoClose: NOTIFICATION_TIMEOUT,
-            withCloseButton: false,
-            sx: {
-              cursor: 'pointer',
-            },
-            onClick: () => {
-              dispatch(setChatOpen(true));
-              notifications.clean();
-            },
-          });
-        }
+      if (!chatOpen) {
+        notifications.show({
+          title: chatItem.author,
+          message: truncate(chatItem.message, 60),
+          icon: <TbMessage size={20} />,
+          autoClose: NOTIFICATION_TIMEOUT,
+          withCloseButton: false,
+          sx: {
+            cursor: 'pointer',
+          },
+          onClick: () => {
+            dispatch(setChatOpen(true));
+            notifications.clean();
+          },
+        });
       }
     });
 
     return () => {
       client.socket.off('message');
     };
-  }, [peers, chatOpen]);
+  }, [chatOpen]);
 
   function truncate(str: string, n: number) {
     return str.length > n ? str.substring(0, n - 1) + '...' : str;

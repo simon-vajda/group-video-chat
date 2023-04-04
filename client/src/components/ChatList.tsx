@@ -1,15 +1,8 @@
 import { Box, Stack, Sx } from '@mantine/core';
-import { Peer } from './CallPage';
 import ChatBubble from './ChatBubble';
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCall } from '../state/callSlice';
-
-interface ChatItem {
-  author: Peer;
-  message: string;
-  timeStamp: number;
-}
 
 interface ChatListProps {
   sx?: Sx;
@@ -76,5 +69,4 @@ function ChatList({ sx }: ChatListProps) {
   );
 }
 
-export type { ChatItem };
 export default ChatList;
