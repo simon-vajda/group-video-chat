@@ -60,7 +60,7 @@ export default function Navbar() {
           ) : (
             <Group spacing="sm">
               <Link to="/login">
-                <Button variant="subtle">Log in</Button>
+                <Button variant="subtle">Login</Button>
               </Link>
               <Link to="/signup">
                 <Button variant="gradient">Sign Up</Button>

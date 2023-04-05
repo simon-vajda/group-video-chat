@@ -5,6 +5,7 @@ import Room from './components/Room';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import HomePage from './components/HomePage';
 import { Notifications } from '@mantine/notifications';
+import LoginPage from './components/LoginPage';
 
 function App() {
   const router = createBrowserRouter([
@@ -18,6 +19,10 @@ function App() {
         {
           path: 'room/:id',
           element: <Room />,
+        },
+        {
+          path: '/login',
+          element: <LoginPage />,
         },
       ],
     },
