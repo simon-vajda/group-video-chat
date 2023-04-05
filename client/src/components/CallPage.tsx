@@ -7,7 +7,7 @@ import {
   Paper,
   useMantineTheme,
 } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TbMessage } from 'react-icons/tb';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
@@ -63,15 +63,16 @@ function initClient(): RtcClient {
 
 function CallPage() {
   const [client] = useState<RtcClient>(initClient());
-  const [localStream, setLocalStream] = useState<MediaStream>(
-    new MediaStream(),
-  );
   const [streams, setStreams] = useState<MediaStream[]>([]);
   const [peers, setPeers] = useState<Map<PeerID, Peer>>(new Map());
   const [streamOwners, setStreamOwners] = useState<Map<StreamID, PeerID>>(
     new Map(),
   );
   const [loading, setLoading] = useState(true);
+  const [localStream, setLocalStream] = useState<MediaStream>(
+    new MediaStream(),
+  );
+  const localStreamRef = useRef(localStream);
 
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
@@ -106,6 +107,7 @@ function CallPage() {
       setPeers((prev) => new Map(prev).set('local', localPeer));
       setStreams((prev) => [...prev, media]);
       setStreamOwners((prev) => new Map(prev).set(media.id, 'local'));
+      localStreamRef.current = media;
     } catch (err) {
       console.error('Failed to get local stream', err);
     } finally {
@@ -233,6 +235,7 @@ function CallPage() {
       socket.off();
       socket.disconnect();
       pc.close();
+      localStreamRef.current.getTracks().forEach((track) => track.stop());
     };
   }, []);
 

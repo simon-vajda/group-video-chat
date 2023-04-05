@@ -14,7 +14,7 @@ import {
   Title,
   Transition,
 } from '@mantine/core';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import ToggleButton from './ToggleButton';
 import {
   TbMicrophone,
@@ -47,6 +47,7 @@ function JoinScreen() {
   const [localStream, setLocalStream] = useState<MediaStream>(
     new MediaStream(),
   );
+  const localStreamRef = useRef(localStream);
   const hasVideo = localStream.getVideoTracks().length > 0;
 
   const dispatch = useDispatch();
@@ -81,6 +82,7 @@ function JoinScreen() {
       }
 
       setLocalStream(stream);
+      localStreamRef.current = stream;
     } catch (err) {
       showNotification({
         title: 'Permission denied',
@@ -95,6 +97,10 @@ function JoinScreen() {
 
   useEffect(() => {
     loadUserMedia();
+
+    return () => {
+      localStreamRef.current.getTracks().forEach((track) => track.stop());
+    };
   }, []);
 
   const handleAudioToggle = (turnedOn: boolean) => {
@@ -129,7 +135,6 @@ function JoinScreen() {
   );
 
   const joinRoom = () => {
-    localStream.getVideoTracks().forEach((track) => track.stop());
     dispatch(setUsername(name));
   };
 
