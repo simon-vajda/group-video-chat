@@ -25,6 +25,10 @@ function createRoom() {
   while (rooms.has(room.id)) {
     room = new Room();
   }
+  room.setOnCallEnded(() => {
+    rooms.delete(room.id);
+    logger.info(`Room deleted: ${room.id}`);
+  });
   rooms.set(room.id, room);
   return room.id;
 }

@@ -61,6 +61,10 @@ class Room {
     peer.connection.close();
     this.peers.delete(peer.id);
     this.streams.delete(peer.id);
+
+    if (this.peers.size === 0 && this.onCallEnded) {
+      this.onCallEnded();
+    }
   }
 
   /** @param {Peer} peer */
@@ -117,6 +121,11 @@ class Room {
       id += Math.floor(Math.random() * 10);
     }
     return id;
+  }
+
+  /** @param {Function} onCallEnded */
+  setOnCallEnded(onCallEnded) {
+    this.onCallEnded = onCallEnded;
   }
 }
 
