@@ -65,6 +65,12 @@ function App() {
                 radius: 'md',
               },
             },
+            Menu: {
+              defaultProps: {
+                radius: 'md',
+                shadow: 'md',
+              },
+            },
           },
         }}
       >

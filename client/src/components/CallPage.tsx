@@ -1,41 +1,22 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
-  ActionIcon,
   Box,
-  Button,
   Center,
   Container,
-  Group,
   Loader,
   Paper,
-  Text,
   useMantineTheme,
 } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import {
-  TbMicrophone,
-  TbMicrophoneOff,
-  TbVideo,
-  TbVideoOff,
-  TbPhoneX,
-  TbShare2,
-  TbHandStop,
-  TbLink,
-  TbMessage,
-} from 'react-icons/tb';
+import { TbMessage } from 'react-icons/tb';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import RtcClient from '../rtcClient';
-import {
-  selectUserMedia,
-  toggleAudio,
-  toggleVideo,
-} from '../state/userMediaSlice';
-import { selectUser, setUsername } from '../state/userSlice';
+import { selectUser } from '../state/userSlice';
 import VideoGrid from './VideoGrid';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
-import ReactionSelector, { Reaction } from './ReactionSelector';
+import { Reaction } from './ReactionSelector';
 import { getServerUrl } from '../App';
 import useGridItems from '../hooks/useGridItems';
 import useMuter from '../hooks/useMuter';
@@ -47,10 +28,9 @@ import {
   selectCall,
   setChatItems,
   setChatOpen,
-  setHandRaised,
-  toggleChatOpen,
 } from '../state/callSlice';
 import { ChatItem } from '../state/callSlice';
+import ControlBar from './ControlBar';
 
 type PeerID = string;
 type StreamID = string;
@@ -82,9 +62,6 @@ function initClient(): RtcClient {
 }
 
 function CallPage() {
-  const { id: roomId } = useParams();
-  const navigate = useNavigate();
-
   const [client] = useState<RtcClient>(initClient());
   const [localStream, setLocalStream] = useState<MediaStream>(
     new MediaStream(),
@@ -97,9 +74,9 @@ function CallPage() {
   const [loading, setLoading] = useState(true);
 
   const dispatch = useDispatch();
-  const userMedia = useSelector(selectUserMedia);
   const user = useSelector(selectUser);
-  const { chatOpen, handRaised } = useSelector(selectCall);
+  const { chatOpen } = useSelector(selectCall);
+  const { id: roomId } = useParams();
 
   const gridItems = useGridItems(streams, peers, streamOwners);
   const theme = useMantineTheme();
@@ -307,33 +284,6 @@ function CallPage() {
     });
   }
 
-  const endCall = () => {
-    localStream.getTracks().forEach((track) => track.stop());
-    dispatch(setUsername(''));
-    navigate('/');
-  };
-
-  function copyShareLink() {
-    const roomLink =
-      window.location.protocol +
-      '//' +
-      window.location.host +
-      `/room/${roomId}`;
-    navigator.clipboard.writeText(roomLink);
-    notifications.show({
-      title: 'Link copied',
-      message: 'The room link has been copied to your clipboard',
-      autoClose: 1500,
-      icon: <TbLink size={18} />,
-    });
-  }
-
-  function toggleHandRaise() {
-    const newValue = !handRaised;
-    client.sendReaction(newValue ? 'hand-up' : 'hand-down');
-    dispatch(setHandRaised(newValue));
-  }
-
   function sendMessage(message: string) {
     client.sendMessage(message);
   }
@@ -386,67 +336,7 @@ function CallPage() {
           />
         )}
       </Box>
-      <Group position="apart" align="end" mt="md">
-        <Group spacing={6} align="center">
-          <Text
-            fz="lg"
-            fw={500}
-            sx={{
-              letterSpacing: 4,
-            }}
-          >
-            {roomId}
-          </Text>
-          <ActionIcon onClick={copyShareLink} size="lg">
-            <TbShare2 size={18} />
-          </ActionIcon>
-        </Group>
-        <Group position="center" align="center">
-          <ActionIcon
-            size="xl"
-            variant="filled"
-            color={handRaised ? 'yellow' : 'gray'}
-            onClick={toggleHandRaise}
-          >
-            <TbHandStop size={24} />
-          </ActionIcon>
-          <ReactionSelector onReaction={(r) => client.sendReaction(r)} />
-          <ActionIcon
-            size="xl"
-            variant="filled"
-            color={userMedia.audioEnabled ? 'gray' : 'gray'}
-            onClick={() => dispatch(toggleAudio())}
-          >
-            {userMedia.audioEnabled ? (
-              <TbMicrophone size={24} />
-            ) : (
-              <TbMicrophoneOff size={24} />
-            )}
-          </ActionIcon>
-          <ActionIcon
-            size="xl"
-            variant="filled"
-            color={userMedia.videoEnabled ? 'gray' : 'gray'}
-            onClick={() => dispatch(toggleVideo())}
-          >
-            {userMedia.videoEnabled ? (
-              <TbVideo size={24} />
-            ) : (
-              <TbVideoOff size={24} />
-            )}
-          </ActionIcon>
-          <ActionIcon
-            size="xl"
-            variant="filled"
-            onClick={() => dispatch(toggleChatOpen())}
-          >
-            <TbMessage size={24} />
-          </ActionIcon>
-        </Group>
-        <Button color="red" leftIcon={<TbPhoneX size={16} />} onClick={endCall}>
-          End Call
-        </Button>
-      </Group>
+      <ControlBar rtcClient={client} />
     </Container>
   );
 }
