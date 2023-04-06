@@ -1,4 +1,4 @@
-import { logger } from './app.js';
+import { logger } from './app';
 import wrtc from 'wrtc';
 import { randomUUID } from 'crypto';
 import { Socket } from 'socket.io';
@@ -15,18 +15,20 @@ const RTCConfig = {
 };
 
 class Peer {
-  constructor(socket, name) {
-    /** @type {string} */
+  id: string;
+  connection: RTCPeerConnection;
+  socket: Socket;
+  makingOffer = false;
+  name: string;
+  index: number;
+  handRaised = false;
+
+  constructor(socket: Socket, name: string) {
     this.id = randomUUID();
-    /** @type {RTCPeerConnection} */
     this.connection = new wrtc.RTCPeerConnection(RTCConfig);
-    /** @type {Socket} */
     this.socket = socket;
-    /** @type {boolean} */
     this.makingOffer = false;
-    /** @type {string} */
     this.name = name;
-    /** @type {number} */
     this.index = 0;
 
     this.connection.onicecandidate = (e) => this.onIceCandidate(e.candidate);
@@ -39,8 +41,7 @@ class Peer {
     this.socket.on('offer', (e) => this.onOfferReceived(e));
   }
 
-  /** @param {RTCIceCandidate} candidate */
-  onIceCandidate(iceCandidate) {
+  onIceCandidate(iceCandidate: RTCIceCandidate | null) {
     if (iceCandidate && iceCandidate.candidate !== '') {
       this.socket.emit('icecandidate', iceCandidate);
       logger.trace(`Candidate sent to: ${this}`);

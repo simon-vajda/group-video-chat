@@ -1,16 +1,11 @@
 import Fastify from 'fastify';
 import fastifyIO from 'fastify-socket.io';
 import pino from 'pino';
-import { handleConnection } from './socket.js';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { handleConnection } from './socket';
+import { join } from 'path';
 import fastifyStatic from '@fastify/static';
 import autoload from '@fastify/autoload';
 import cors from '@fastify/cors';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export const logger = pino({
   transport: {
@@ -49,7 +44,7 @@ process.on('uncaughtException', (err) =>
   logger.error(err, 'node process uncaughtException'),
 );
 fastify.server.on('clientError', (err, socket) => {
-  if (err.code === 'ECONNRESET' || !socket.writable) {
+  if (err.name === 'ECONNRESET' || !socket.writable) {
     socket.end('HTTP/2 400 Bad Request\n');
   }
 });

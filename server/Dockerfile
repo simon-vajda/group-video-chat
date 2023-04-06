@@ -1,10 +1,16 @@
+FROM node:18 AS builder
+WORKDIR /app
+COPY . .
+RUN npm install -g @mapbox/node-pre-gyp
+RUN npm install
+RUN npm run build
+
 FROM node:18
-WORKDIR /usr/src/app
+WORKDIR /app
+COPY --from=builder /app/build ./build
 COPY package*.json ./
 RUN npm install -g @mapbox/node-pre-gyp
 RUN npm ci --omit=dev
-COPY . .
-
-EXPOSE 5000
+EXPOSE 15000
 
 CMD [ "node", "src/app.js" ]

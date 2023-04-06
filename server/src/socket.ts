@@ -1,12 +1,12 @@
-import { logger } from './app.js';
-import Peer from './peer.js';
-import Room from './room.js';
+import { Socket } from 'socket.io';
+import { logger } from './app';
+import Peer from './peer';
+import Room from './room';
 
-/** @type {Map<string, Room>} */
-const rooms = new Map();
+const rooms: Map<string, Room> = new Map();
 
-function handleConnection(socket) {
-  socket.on('join', (name, roomId) => {
+function handleConnection(socket: Socket) {
+  socket.on('join', (name: string, roomId: string) => {
     if (!rooms.has(roomId)) {
       socket.emit('room-not-found', roomId);
       return;
@@ -33,7 +33,7 @@ function createRoom() {
   return room.id;
 }
 
-function roomExists(roomId) {
+function roomExists(roomId: string) {
   return rooms.has(roomId);
 }
 

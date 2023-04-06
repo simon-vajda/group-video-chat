@@ -1,36 +1,43 @@
-import { logger } from './app.js';
-import Peer from './peer.js';
+import { logger } from './app';
+import Peer from './peer';
+
+interface ChatItem {
+  authorId: string;
+  author: string;
+  message: string;
+  timeStamp: number;
+}
 
 class Room {
+  id: string;
+  peers: Map<string, Peer>;
+  streams: Map<string, MediaStream>;
+  messages: ChatItem[];
+  onCallEnded: () => void;
+
   constructor() {
-    /** @type {string} */
     this.id = this.generateId();
-    /** @type {Map<string, Peer>} */
     this.peers = new Map();
-    /** @type {Map<string, MediaStream>} */
     this.streams = new Map();
     this.messages = [];
   }
 
-  /**
-   * @param {Peer} peer
-   */
-  addPeer(peer) {
+  addPeer(peer: Peer) {
     peer.index = this.peers.size;
     this.sendRoomStateTo(peer);
     this.peers.set(peer.id, peer);
     peer.connection.ontrack = (event) => this.onTrack(event, peer);
     peer.socket.on('disconnect', () => this.onDisconnect(peer));
-    peer.socket.on('reaction', (reaction) => this.onReaction(reaction, peer));
-    peer.socket.on('message', (message) => this.onMessage(message, peer));
+    peer.socket.on('reaction', (reaction: string) =>
+      this.onReaction(reaction, peer),
+    );
+    peer.socket.on('message', (message: string) =>
+      this.onMessage(message, peer),
+    );
     peer.socket.to(this.id).emit('peer-joined', peer.id, peer.name, peer.index);
   }
 
-  /**
-   * @param {RTCTrackEvent} event
-   * @param {Peer} peer
-   */
-  onTrack(event, peer) {
+  onTrack(event: RTCTrackEvent, peer: Peer) {
     logger.trace(
       `Track ${event.track.kind}, streamId: ${event.streams[0].id} from peer: ${peer}`,
     );
@@ -54,8 +61,7 @@ class Room {
     });
   }
 
-  /** @param {Peer} peer */
-  onDisconnect(peer) {
+  onDisconnect(peer: Peer) {
     logger.info(`Peer disconnected: ${peer}`);
     peer.socket.to(this.id).emit('peer-left', peer.id);
     peer.connection.close();
@@ -67,8 +73,7 @@ class Room {
     }
   }
 
-  /** @param {Peer} peer */
-  sendRoomStateTo(peer) {
+  sendRoomStateTo(peer: Peer) {
     const peers = Array.from(this.peers).map(([pId, p]) => ({
       id: p.id,
       name: p.name,
@@ -84,11 +89,7 @@ class Room {
     peer.socket.emit('room-state', peers, streamOwners, this.messages);
   }
 
-  /**
-   * @param {string} reaction
-   * @param {Peer} peer
-   */
-  onReaction(reaction, peer) {
+  onReaction(reaction: string, peer: Peer) {
     logger.trace(`Reaction in room ${this.id} from peer: ${peer}: ${reaction}`);
 
     if (reaction === 'hand-up') peer.handRaised = true;
@@ -97,11 +98,7 @@ class Room {
     peer.socket.to(this.id).emit('reaction', reaction, peer.id);
   }
 
-  /**
-   * @param {string} message
-   * @param {Peer} peer
-   */
-  onMessage(message, peer) {
+  onMessage(message: string, peer: Peer) {
     logger.trace(`Message in room ${this.id} from peer: ${peer}`);
     const chatItem = {
       authorId: peer.id,
@@ -113,7 +110,6 @@ class Room {
     this.messages.push(chatItem);
   }
 
-  /** @returns {string} */
   generateId() {
     const length = 6;
     let id = '';
@@ -123,8 +119,7 @@ class Room {
     return id;
   }
 
-  /** @param {Function} onCallEnded */
-  setOnCallEnded(onCallEnded) {
+  setOnCallEnded(onCallEnded: () => void) {
     this.onCallEnded = onCallEnded;
   }
 }
