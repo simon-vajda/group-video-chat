@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import HomePage from './components/HomePage';
 import { Notifications } from '@mantine/notifications';
 import LoginPage from './components/LoginPage';
+import SignUpPage from './components/SignUpPage';
 
 function App() {
   const router = createBrowserRouter([
@@ -23,6 +24,10 @@ function App() {
         {
           path: '/login',
           element: <LoginPage />,
+        },
+        {
+          path: 'signup',
+          element: <SignUpPage />,
         },
       ],
     },
