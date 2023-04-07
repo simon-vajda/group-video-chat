@@ -85,6 +85,15 @@ function CallPage() {
   useMuter(localStream);
 
   async function initMedia(pc: RTCPeerConnection) {
+    const localPeer: Peer = {
+      id: 'local',
+      name: user.name,
+      index: -1,
+      handRaised: false,
+      reaction: { value: 'like', timeLeft: 0 },
+    };
+    setPeers((prev) => new Map(prev).set('local', localPeer));
+
     try {
       const media = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -95,16 +104,7 @@ function CallPage() {
         pc.addTrack(track, media);
       });
 
-      const localPeer: Peer = {
-        id: 'local',
-        name: user.name,
-        index: -1,
-        handRaised: false,
-        reaction: { value: 'like', timeLeft: 0 },
-      };
-
       setLocalStream(media);
-      setPeers((prev) => new Map(prev).set('local', localPeer));
       setStreams((prev) => [...prev, media]);
       setStreamOwners((prev) => new Map(prev).set(media.id, 'local'));
       localStreamRef.current = media;
