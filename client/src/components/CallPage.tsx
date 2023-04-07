@@ -202,31 +202,7 @@ function CallPage() {
 
     socket.on('reaction', (reaction: Reaction, peerId: PeerID) => {
       console.log('Reaction received', reaction, peerId);
-      setPeers((prev) => {
-        const newPeers = new Map(prev);
-        const peer = newPeers.get(peerId);
-        if (peer) {
-          const newPeer = { ...peer };
-          if (reaction === 'hand-up') {
-            newPeer.handRaised = true;
-          } else if (reaction === 'hand-down') {
-            newPeer.handRaised = false;
-          } else {
-            newPeer.reaction = {
-              ...newPeer.reaction,
-              value: reaction,
-              timeLeft: newPeer.reaction.timeLeft + 1,
-            };
-
-            setTimeout(() => {
-              removeReaction(peerId);
-            }, REACTION_TIMEOUT);
-          }
-          newPeers.set(peerId, newPeer);
-        }
-
-        return newPeers;
-      });
+      onReaction(reaction, peerId);
     });
 
     socket.emit('join', user.name, roomId);
@@ -295,6 +271,34 @@ function CallPage() {
     dispatch(setChatOpen(false));
   }
 
+  function onReaction(reaction: Reaction, peerId: PeerID) {
+    setPeers((prev) => {
+      const newPeers = new Map(prev);
+      const peer = newPeers.get(peerId);
+      if (peer) {
+        const newPeer = { ...peer };
+        if (reaction === 'hand-up') {
+          newPeer.handRaised = true;
+        } else if (reaction === 'hand-down') {
+          newPeer.handRaised = false;
+        } else {
+          newPeer.reaction = {
+            ...newPeer.reaction,
+            value: reaction,
+            timeLeft: newPeer.reaction.timeLeft + 1,
+          };
+
+          setTimeout(() => {
+            removeReaction(peerId);
+          }, REACTION_TIMEOUT);
+        }
+        newPeers.set(peerId, newPeer);
+      }
+
+      return newPeers;
+    });
+  }
+
   return (
     <Container
       fluid
@@ -339,7 +343,10 @@ function CallPage() {
           />
         )}
       </Box>
-      <ControlBar rtcClient={client} />
+      <ControlBar
+        rtcClient={client}
+        onReaction={(r) => onReaction(r, 'local')}
+      />
     </Container>
   );
 }

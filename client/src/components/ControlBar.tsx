@@ -27,9 +27,10 @@ import { useMediaQuery } from '@mantine/hooks';
 
 interface ControlBarProps {
   rtcClient: RtcClient;
+  onReaction: (reaction: Reaction) => void;
 }
 
-function ControlBar({ rtcClient }: ControlBarProps) {
+function ControlBar({ rtcClient, onReaction }: ControlBarProps) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -66,6 +67,7 @@ function ControlBar({ rtcClient }: ControlBarProps) {
 
   function handleReaction(reaction: Reaction) {
     rtcClient.sendReaction(reaction);
+    onReaction(reaction);
   }
 
   function toggleChat() {
