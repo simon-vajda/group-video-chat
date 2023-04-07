@@ -91,6 +91,16 @@ function HomePage() {
     }
   }, [createResponse]);
 
+  function onPinPaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    e.preventDefault();
+    const value = e.clipboardData
+      .getData('text/plain')
+      .trim()
+      .replaceAll(/\D/g, '')
+      .slice(0, 6);
+    setPin(value);
+  }
+
   return (
     <Layout>
       <Container
@@ -138,6 +148,7 @@ function HomePage() {
                   onChange={handlePinChange}
                   error={error !== ''}
                   disabled={isLoading}
+                  onPaste={onPinPaste}
                 />
               </Group>
               <Button
