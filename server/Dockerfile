@@ -13,4 +13,4 @@ RUN npm install -g @mapbox/node-pre-gyp
 RUN npm ci --omit=dev
 EXPOSE 15000
 
-CMD [ "node", "src/app.js" ]
+CMD [ "node", "build/app.js" ]
