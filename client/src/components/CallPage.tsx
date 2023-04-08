@@ -250,14 +250,10 @@ function CallPage() {
   function removeReaction(peerId: PeerID) {
     setPeers((prev) => {
       const newPeers = new Map(prev);
-      const peer = newPeers.get(peerId);
+      const peer = deepCopy(newPeers.get(peerId));
       if (peer) {
-        const newPeer = { ...peer };
-        newPeer.reaction = {
-          ...newPeer.reaction,
-          timeLeft: newPeer.reaction.timeLeft - 1,
-        };
-        newPeers.set(peerId, newPeer);
+        peer.reaction.timeLeft--;
+        newPeers.set(peerId, peer);
       }
       return newPeers;
     });
@@ -274,29 +270,30 @@ function CallPage() {
   function onReaction(reaction: Reaction, peerId: PeerID) {
     setPeers((prev) => {
       const newPeers = new Map(prev);
-      const peer = newPeers.get(peerId);
+      const peer = deepCopy(newPeers.get(peerId));
       if (peer) {
-        const newPeer = { ...peer };
         if (reaction === 'hand-up') {
-          newPeer.handRaised = true;
+          peer.handRaised = true;
         } else if (reaction === 'hand-down') {
-          newPeer.handRaised = false;
+          peer.handRaised = false;
         } else {
-          newPeer.reaction = {
-            ...newPeer.reaction,
-            value: reaction,
-            timeLeft: newPeer.reaction.timeLeft + 1,
-          };
+          peer.reaction.value = reaction;
+          peer.reaction.timeLeft++;
 
           setTimeout(() => {
             removeReaction(peerId);
           }, REACTION_TIMEOUT);
         }
-        newPeers.set(peerId, newPeer);
+        newPeers.set(peerId, peer);
       }
 
       return newPeers;
     });
+  }
+
+  function deepCopy<T>(obj: T): T | undefined {
+    if (obj === undefined || obj === null) return undefined;
+    return structuredClone(obj);
   }
 
   return (
