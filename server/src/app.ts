@@ -1,11 +1,14 @@
 import Fastify from 'fastify';
 import fastifyIO from 'fastify-socket.io';
-import pino from 'pino';
-import { handleConnection } from './socket';
-import { join } from 'path';
-import fastifyStatic from '@fastify/static';
 import autoload from '@fastify/autoload';
 import cors from '@fastify/cors';
+import fastifyJwt from '@fastify/jwt';
+import pino from 'pino';
+import { join } from 'path';
+import { handleConnection } from './socket';
+import { AppDataSource } from './dataSource';
+
+const secret = process.env.JWT_SECRET || 'supersecretkey';
 
 export const logger = pino({
   transport: {
@@ -18,26 +21,22 @@ export const logger = pino({
   level: 'trace',
 });
 
+AppDataSource.initialize().catch(() => {
+  logger.fatal(AppDataSource.options, 'Failed to connect to database');
+  process.exit(1);
+});
+
 const fastify = Fastify({
   logger: logger,
-  // http2: true,
-  // https: {
-  //   key: readFileSync(join(__dirname, '../cert/server.key')),
-  //   cert: readFileSync(join(__dirname, '../cert/server.cert')),
-  //   requestCert: false,
-  //   rejectUnauthorized: false,
-  // },
 });
-fastify.register(fastifyIO, { cors: { origin: '*' }, path: '/api/socket.io/' });
-fastify.register(cors, {
-  origin: '*',
+fastify.register(fastifyIO, {
+  cors: { origin: '*' },
+  path: '/api/socket.io/',
 });
+fastify.register(cors, { origin: '*' });
+fastify.register(fastifyJwt, { secret });
 fastify.register(autoload, {
   dir: join(__dirname, 'routes'),
-});
-fastify.register(fastifyStatic, {
-  root: join(__dirname, '../../client/build'),
-  prefix: '/',
 });
 
 process.on('uncaughtException', (err) =>
@@ -55,7 +54,7 @@ fastify.ready().then(() => {
 
 fastify.listen({ port: 15000, host: '0.0.0.0' }, (err, address) => {
   if (err) {
-    logger.error(err);
+    logger.fatal(err);
     process.exit(1);
   }
 });
