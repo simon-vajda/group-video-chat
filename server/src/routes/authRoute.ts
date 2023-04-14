@@ -5,7 +5,6 @@ import {
   FastifyReply,
   FastifySchema,
 } from 'fastify';
-import { createRoom, roomExists } from '../socket';
 import { AppDataSource } from '../dataSource';
 import { User } from '../entities/User';
 import bcrypt from 'bcrypt';
@@ -92,11 +91,14 @@ function authRoute(fastify: FastifyInstance, opts: FastifyPluginOptions, done) {
       return;
     }
 
-    const token = fastify.jwt.sign({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    });
+    const token = fastify.jwt.sign(
+      {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+      { expiresIn: '4h' },
+    );
     reply.code(200).send({ token });
   });
 
@@ -111,5 +113,5 @@ async function authenticate(request: FastifyRequest, reply: FastifyReply) {
   }
 }
 
-export { authenticate };
+export { autoPrefix, authenticate };
 export default authRoute;
