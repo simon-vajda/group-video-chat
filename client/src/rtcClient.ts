@@ -16,6 +16,7 @@ class RtcClient {
   connection: RTCPeerConnection;
   socket: Socket;
   makingOffer = false;
+  candidateBuffer: RTCIceCandidate[] = [];
 
   constructor(socket: Socket) {
     this.connection = new RTCPeerConnection(RTCConfig);
@@ -73,6 +74,14 @@ class RtcClient {
     await this.connection.setLocalDescription(answer);
     this.socket.emit('answer', answer);
     console.log('Sending answer', answer);
+
+    this.candidateBuffer.forEach((candidate) => {
+      try {
+        this.connection.addIceCandidate(candidate);
+      } catch (err) {
+        console.error('Add ice candidate error', err, candidate);
+      }
+    });
   }
 
   async onAnswerReceived(answer: RTCSessionDescriptionInit) {
@@ -82,7 +91,11 @@ class RtcClient {
 
   async onIceCandidateReceived(candidate: RTCIceCandidate) {
     try {
-      await this.connection.addIceCandidate(candidate);
+      if (this.connection.remoteDescription) {
+        await this.connection.addIceCandidate(candidate);
+      } else {
+        this.candidateBuffer.push(candidate);
+      }
       console.log('Candidate received', candidate);
     } catch (err) {
       console.error('Candidate received error', err, candidate);
