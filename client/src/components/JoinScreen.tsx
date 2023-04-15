@@ -24,6 +24,7 @@ import {
   TbUserCircle,
   TbX,
   TbSettings,
+  TbLogin,
 } from 'react-icons/tb';
 import { showNotification } from '@mantine/notifications';
 import { useSelector } from 'react-redux/es/exports';
@@ -35,12 +36,16 @@ import {
   toggleVideo,
 } from '../state/userMediaSlice';
 import { useDispatch } from 'react-redux/es/hooks/useDispatch';
-import { setUsername } from '../state/userSlice';
+import { selectUser, setUsername } from '../state/userSlice';
 import { useCheckRoomQuery } from '../api/roomApi';
 import { useParams } from 'react-router-dom';
 import useMuter from '../hooks/useMuter';
 
-function JoinScreen() {
+interface JoinScreenProps {
+  setReady: (ready: boolean) => void;
+}
+
+function JoinScreen({ setReady }: JoinScreenProps) {
   const { id: roomId } = useParams();
 
   const [name, setName] = useState('');
@@ -52,6 +57,7 @@ function JoinScreen() {
 
   const dispatch = useDispatch();
   const userMedia = useSelector(selectUserMedia);
+  const user = useSelector(selectUser);
 
   useMuter(localStream);
 
@@ -135,7 +141,10 @@ function JoinScreen() {
   );
 
   const joinRoom = () => {
-    dispatch(setUsername(name));
+    if (!user.token) {
+      dispatch(setUsername(name));
+    }
+    setReady(true);
   };
 
   return (
@@ -189,15 +198,23 @@ function JoinScreen() {
           {(styles) => (
             <form onSubmit={joinRoom} style={styles}>
               <Stack>
-                <TextInput
-                  placeholder="Your name"
-                  onChange={(e) => setName(e.target.value)}
-                  value={name}
-                  icon={<TbUserCircle size={24} />}
+                {!user.token && (
+                  <TextInput
+                    placeholder="Your name"
+                    onChange={(e) => setName(e.target.value)}
+                    value={name}
+                    icon={<TbUserCircle size={24} />}
+                    size="md"
+                    maxLength={30}
+                  />
+                )}
+                <Button
+                  disabled={name.length === 0 && user.token === ''}
                   size="md"
-                />
-                <Button disabled={name.length === 0} size="md" type="submit">
-                  Join
+                  type="submit"
+                  leftIcon={<TbLogin size={20} />}
+                >
+                  {user.token ? `Join as ${user.name}` : `Join`}
                 </Button>
               </Stack>
             </form>

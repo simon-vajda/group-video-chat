@@ -21,7 +21,6 @@ import ReactionSelector, { Reaction } from './ReactionSelector';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
-import { setUsername } from '../state/userSlice';
 import RtcClient from '../rtcClient';
 import { useMediaQuery } from '@mantine/hooks';
 

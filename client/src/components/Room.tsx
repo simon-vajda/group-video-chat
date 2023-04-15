@@ -1,12 +1,11 @@
-import { useSelector } from 'react-redux';
-import { selectUser } from '../state/userSlice';
 import CallPage from './CallPage';
 import JoinScreen from './JoinScreen';
+import { useState } from 'react';
 
 function Room() {
-  const user = useSelector(selectUser);
+  const [ready, setReady] = useState(false);
 
-  return user.name.length > 0 ? <CallPage /> : <JoinScreen />;
+  return ready ? <CallPage /> : <JoinScreen setReady={setReady} />;
 }
 
 export default Room;

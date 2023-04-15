@@ -13,8 +13,8 @@ import {
   Transition,
   useMantineTheme,
 } from '@mantine/core';
-import { useEffect, useState } from 'react';
-import { TbKey, TbLock, TbLogin, TbVideoPlus } from 'react-icons/tb';
+import { useState } from 'react';
+import { TbKey, TbLogin, TbVideoPlus } from 'react-icons/tb';
 import { useNavigate } from 'react-router-dom';
 import { useLazyCheckRoomQuery, useLazyCreateRoomQuery } from '../api/roomApi';
 import Layout from './Layout';
