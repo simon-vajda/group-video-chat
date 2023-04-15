@@ -4,6 +4,7 @@ import { roomApi } from '../api/roomApi';
 import userMediaSlice from './userMediaSlice';
 import userSlice from './userSlice';
 import callSlice from './callSlice';
+import authApi from '../api/authApi';
 
 const store = configureStore({
   reducer: {
@@ -11,9 +12,12 @@ const store = configureStore({
     [userSlice.name]: userSlice.reducer,
     [callSlice.name]: callSlice.reducer,
     [roomApi.reducerPath]: roomApi.reducer,
+    [authApi.reducerPath]: authApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(roomApi.middleware),
+    getDefaultMiddleware()
+      .concat(roomApi.middleware)
+      .concat(authApi.middleware),
 });
 
 setupListeners(store.dispatch);

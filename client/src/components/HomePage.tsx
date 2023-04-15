@@ -14,10 +14,13 @@ import {
   useMantineTheme,
 } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { TbKey, TbVideoPlus } from 'react-icons/tb';
+import { TbKey, TbLock, TbLogin, TbVideoPlus } from 'react-icons/tb';
 import { useNavigate } from 'react-router-dom';
 import { useLazyCheckRoomQuery, useLazyCreateRoomQuery } from '../api/roomApi';
 import Layout from './Layout';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../state/userSlice';
+import { notifications } from '@mantine/notifications';
 
 const useStyles = createStyles((theme) => ({
   title: {
@@ -51,10 +54,10 @@ function HomePage() {
 
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
+  const user = useSelector(selectUser);
 
   const [createRoom, createResponse] = useLazyCreateRoomQuery();
   const [checkRoom, checkResponse] = useLazyCheckRoomQuery();
-  const { isSuccess, data: roomExists, isError, isLoading } = checkResponse;
 
   function handlePinChange(s: string) {
     setPin(s);
@@ -67,29 +70,38 @@ function HomePage() {
       setError('Room id must be 6 digits long');
       return;
     }
-    checkRoom(pin);
+    checkRoom(pin)
+      .unwrap()
+      .then((exists) => {
+        if (exists) {
+          navigate(`/room/${pin}`);
+        } else {
+          setError('Room does not exist');
+        }
+      })
+      .catch(() => {
+        setError('Something went wrong');
+      });
   }
 
-  useEffect(() => {
-    if (isSuccess && !isLoading) {
-      if (roomExists) {
-        navigate(`/room/${pin}`);
-      } else {
-        setError('Room does not exist');
-      }
-    }
-
-    if (isError) {
-      setError('Something went wrong');
-    }
-  }, [checkResponse]);
-
-  useEffect(() => {
-    if (createResponse.isSuccess && !createResponse.isLoading) {
-      const roomId = createResponse.data;
-      navigate(`/room/${roomId}`);
-    }
-  }, [createResponse]);
+  function createRoomHandler() {
+    createRoom(user.token)
+      .unwrap()
+      .then((roomId) => {
+        navigate(`/room/${roomId}`);
+      })
+      .catch((err) => {
+        if (err.status === 401 || err.status === 400) {
+          notifications.show({
+            title: 'Authentication needed',
+            message: 'Please login to create a room',
+            color: 'yellow',
+            icon: <TbLogin size={20} />,
+          });
+          navigate('/login');
+        }
+      });
+  }
 
   function onPinPaste(e: React.ClipboardEvent<HTMLInputElement>) {
     e.preventDefault();
@@ -132,7 +144,7 @@ function HomePage() {
             size="md"
             leftIcon={<TbVideoPlus size={22} />}
             loading={createResponse.isLoading}
-            onClick={() => createRoom()}
+            onClick={createRoomHandler}
           >
             Create a room
           </Button>
@@ -147,7 +159,7 @@ function HomePage() {
                   value={pin}
                   onChange={handlePinChange}
                   error={error !== ''}
-                  disabled={isLoading}
+                  disabled={checkResponse.isLoading}
                   onPaste={onPinPaste}
                 />
               </Group>
@@ -155,7 +167,7 @@ function HomePage() {
                 type="submit"
                 leftIcon={<TbKey size={22} />}
                 size="md"
-                loading={isLoading}
+                loading={checkResponse.isLoading}
               >
                 Join
               </Button>

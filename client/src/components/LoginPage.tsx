@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   Anchor,
   Button,
@@ -10,12 +11,25 @@ import {
 } from '@mantine/core';
 import Layout from './Layout';
 import { useForm } from '@mantine/form';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLoginMutation } from '../api/authApi';
+import { useDispatch, useSelector } from 'react-redux';
+import { JwtPayload, logout, selectUser, setUser } from '../state/userSlice';
+import { useEffect } from 'react';
+import jwtDecode from 'jwt-decode';
+import { notifications } from '@mantine/notifications';
+import { TbLogout } from 'react-icons/tb';
 
 function LoginPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const [login, result] = useLoginMutation();
+
   const form = useForm({
     initialValues: {
-      email: '',
+      email: location.state?.email || '',
       password: '',
       keepLoggedIn: false,
     },
@@ -30,9 +44,44 @@ function LoginPage() {
     form.validate();
 
     if (form.isValid()) {
-      console.log(form.values);
+      login(form.values)
+        .unwrap()
+        .then(({ token }) => {
+          dispatch(setUser(token));
+          const { exp } = jwtDecode<JwtPayload>(token);
+          if (exp) {
+            const expires = new Date(exp * 1000);
+            setTimeout(() => {
+              dispatch(logout());
+              notifications.show({
+                title: 'Session expired',
+                message:
+                  'You have been logged out because your session expired',
+                color: 'red',
+                icon: <TbLogout size={20} />,
+              });
+            }, expires.getTime() - Date.now());
+          }
+        })
+        .catch((error) => {
+          if (error.status === 401) {
+            form.setFieldError('password', 'Incorrect password');
+          }
+          if (error.status === 404) {
+            form.setFieldError(
+              'email',
+              'We could not find an account with this email',
+            );
+          }
+        });
     }
   }
+
+  useEffect(() => {
+    if (user.token) {
+      navigate('/', { replace: true });
+    }
+  }, [user]);
 
   return (
     <Layout>
@@ -47,6 +96,7 @@ function LoginPage() {
             placeholder="you@example.com"
             size="md"
             required
+            autoFocus={location.state?.email ? false : true}
             {...form.getInputProps('email')}
           />
           <PasswordInput
@@ -55,6 +105,7 @@ function LoginPage() {
             mt="md"
             size="md"
             required
+            autoFocus={location.state?.email ? true : false}
             {...form.getInputProps('password')}
           />
           <Checkbox
@@ -63,7 +114,13 @@ function LoginPage() {
             size="md"
             {...form.getInputProps('keepLoggedIn', { type: 'checkbox' })}
           />
-          <Button fullWidth mt="xl" size="md" type="submit">
+          <Button
+            fullWidth
+            mt="xl"
+            size="md"
+            type="submit"
+            loading={result.isLoading}
+          >
             Login
           </Button>
 

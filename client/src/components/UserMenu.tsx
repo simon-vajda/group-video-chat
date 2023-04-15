@@ -9,14 +9,15 @@ import {
 } from '@mantine/core';
 import { useState } from 'react';
 import { TbSettings, TbLogout, TbUser } from 'react-icons/tb';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { selectUser } from '../state/userSlice';
+import { logout, selectUser } from '../state/userSlice';
 
 function UserMenu() {
   const [open, setOpen] = useState(false);
   const theme = useMantineTheme();
   const user = useSelector(selectUser);
+  const dispatch = useDispatch();
 
   return (
     <Menu position="bottom-end" opened={open} onChange={setOpen}>
@@ -69,9 +70,8 @@ function UserMenu() {
         <Menu.Divider />
         <Menu.Item
           icon={<TbLogout size={14} />}
-          component="a"
-          href="#"
           color={theme.colors.red[6]}
+          onClick={() => dispatch(logout())}
         >
           Log out
         </Menu.Item>

@@ -1,7 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   Anchor,
   Button,
-  Checkbox,
   Container,
   PasswordInput,
   Stack,
@@ -11,9 +11,19 @@ import {
 } from '@mantine/core';
 import Layout from './Layout';
 import { useForm } from '@mantine/form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSignupMutation } from '../api/authApi';
+import { notifications } from '@mantine/notifications';
+import { TbCheck } from 'react-icons/tb';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../state/userSlice';
+import { useEffect } from 'react';
 
 function SignUpPage() {
+  const navigate = useNavigate();
+  const user = useSelector(selectUser);
+  const [signup, result] = useSignupMutation();
+
   const form = useForm({
     initialValues: {
       name: '',
@@ -52,9 +62,34 @@ function SignUpPage() {
     if (form.values.password !== form.values.passwordAgain) {
       form.setFieldError('passwordAgain', 'Passwords do not match');
     } else {
-      console.log('Form is valid');
+      signup({
+        name: form.values.name,
+        email: form.values.email,
+        password: form.values.password,
+      })
+        .unwrap()
+        .then(() => {
+          notifications.show({
+            title: 'Success',
+            message: 'You have successfully signed up',
+            color: 'teal',
+            icon: <TbCheck size={20} />,
+          });
+          navigate('/login', { state: { email: form.values.email } });
+        })
+        .catch((error) => {
+          if (error.status === 409) {
+            form.setFieldError('email', 'Email already in use');
+          }
+        });
     }
   }
+
+  useEffect(() => {
+    if (user.token) {
+      navigate('/', { replace: true });
+    }
+  }, [user]);
 
   return (
     <Layout>
@@ -70,6 +105,7 @@ function SignUpPage() {
               placeholder="Your name"
               size="md"
               required
+              autoFocus
               {...form.getInputProps('name')}
             />
             <TextInput
@@ -94,7 +130,13 @@ function SignUpPage() {
               {...form.getInputProps('passwordAgain')}
             />
           </Stack>
-          <Button fullWidth mt="xl" size="md" type="submit">
+          <Button
+            fullWidth
+            mt="xl"
+            size="md"
+            type="submit"
+            loading={result.isLoading}
+          >
             Sign Up
           </Button>
 

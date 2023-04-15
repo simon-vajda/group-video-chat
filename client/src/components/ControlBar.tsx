@@ -75,7 +75,6 @@ function ControlBar({ rtcClient, onReaction }: ControlBarProps) {
   }
 
   function endCall() {
-    dispatch(setUsername(''));
     navigate('/');
   }
 

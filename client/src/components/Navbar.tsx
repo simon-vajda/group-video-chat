@@ -15,7 +15,7 @@ import UserMenu from './UserMenu';
 export default function Navbar() {
   const theme = useMantineTheme();
   const user = useSelector(selectUser);
-  const loggedIn = user.name !== '';
+  const loggedIn = user.token !== '';
 
   return (
     <Header
