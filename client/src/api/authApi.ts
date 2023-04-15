@@ -10,6 +10,7 @@ interface SignupBody {
 interface LoginBody {
   email: string;
   password: string;
+  keepLoggedIn?: boolean;
 }
 
 interface LoginResponse {

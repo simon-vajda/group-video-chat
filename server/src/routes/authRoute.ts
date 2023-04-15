@@ -21,6 +21,7 @@ interface LoginRequest extends FastifyRequest {
   Body: {
     email: string;
     password: string;
+    keepLoggedIn?: boolean;
   };
 }
 
@@ -73,7 +74,7 @@ function authRoute(fastify: FastifyInstance, opts: FastifyPluginOptions, done) {
   );
 
   fastify.post<LoginRequest>('/login', async (request, reply) => {
-    const { email, password } = request.body;
+    const { email, password, keepLoggedIn } = request.body;
 
     const user = await userRepository.findOneBy({ email });
     if (!user) {
@@ -97,7 +98,7 @@ function authRoute(fastify: FastifyInstance, opts: FastifyPluginOptions, done) {
         name: user.name,
         email: user.email,
       },
-      { expiresIn: '4h' },
+      { expiresIn: keepLoggedIn ? '7d' : '3h' },
     );
     reply.code(200).send({ token });
   });
