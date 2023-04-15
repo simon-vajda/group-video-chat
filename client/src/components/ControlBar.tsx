@@ -41,8 +41,6 @@ function ControlBar({ rtcClient, onReaction }: ControlBarProps) {
   const sm = useMediaQuery('(max-width: 24em)');
   const md = useMediaQuery('(max-width: 42em)');
 
-  console.log('ControlBar: xs, sm, md', xs, sm, md);
-
   function copyShareLink() {
     const roomLink =
       window.location.protocol +
