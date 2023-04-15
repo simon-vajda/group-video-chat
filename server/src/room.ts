@@ -35,29 +35,32 @@ class Room {
       this.onMessage(message, peer),
     );
     peer.socket.to(this.id).emit('peer-joined', peer.id, peer.name, peer.index);
+
+    this.streams.forEach((stream, key) => {
+      stream.getTracks().forEach((track) => {
+        peer.connection.addTrack(track, stream);
+      });
+    });
   }
 
   onTrack(event: RTCTrackEvent, peer: Peer) {
+    const stream = event.streams[0];
+    const track = event.track;
+
     logger.trace(
-      `Track ${event.track.kind}, streamId: ${event.streams[0].id} from peer: ${peer}`,
+      `Track ${track.kind}, streamId: ${stream.id} from peer: ${peer}`,
     );
 
     if (!this.streams.has(peer.id)) {
-      peer.socket.to(this.id).emit('peer-stream', event.streams[0].id, peer.id);
+      peer.socket.to(this.id).emit('peer-stream', stream.id, peer.id);
     }
 
-    this.streams.set(peer.id, event.streams[0]);
+    this.streams.set(peer.id, stream);
 
     this.peers.forEach((p) => {
-      this.streams.forEach((stream, key) => {
-        if (p.id === key) return;
-
-        try {
-          stream.getTracks().forEach((track) => {
-            p.connection.addTrack(track, stream);
-          });
-        } catch (err) {}
-      });
+      if (p.id !== peer.id) {
+        p.connection.addTrack(track, stream);
+      }
     });
   }
 
