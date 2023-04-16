@@ -32,6 +32,7 @@ import {
 } from '../state/callSlice';
 import { ChatItem } from '../state/callSlice';
 import ControlBar from './ControlBar';
+import { selectUserMedia } from '../state/userMediaSlice';
 
 type PeerID = string;
 type StreamID = string;
@@ -77,6 +78,7 @@ function CallPage() {
 
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
+  const userMedia = useSelector(selectUserMedia);
   const { chatOpen } = useSelector(selectCall);
   const { id: roomId } = useParams();
 
@@ -97,8 +99,12 @@ function CallPage() {
 
     try {
       const media = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
+        audio: userMedia.audioDeviceId
+          ? { deviceId: userMedia.audioDeviceId }
+          : true,
+        video: userMedia.videoDeviceId
+          ? { deviceId: userMedia.videoDeviceId }
+          : { facingMode: 'user' },
       });
       console.log('Local stream', media);
       media.getTracks().forEach((track) => {

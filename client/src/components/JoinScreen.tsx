@@ -1,13 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
-  ActionIcon,
   AspectRatio,
   Button,
   Center,
   Container,
+  Grid,
   Group,
   Loader,
   Paper,
+  Select,
   Stack,
   Text,
   TextInput,
@@ -23,14 +24,15 @@ import {
   TbVideoOff,
   TbUserCircle,
   TbX,
-  TbSettings,
   TbLogin,
 } from 'react-icons/tb';
 import { showNotification } from '@mantine/notifications';
 import { useSelector } from 'react-redux/es/exports';
 import {
   selectUserMedia,
+  setAudioDeviceId,
   setAudioEnabled,
+  setVideoDeviceId,
   setVideoEnabled,
   toggleAudio,
   toggleVideo,
@@ -52,6 +54,8 @@ function JoinScreen({ setReady }: JoinScreenProps) {
   const [localStream, setLocalStream] = useState<MediaStream>(
     new MediaStream(),
   );
+  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const localStreamRef = useRef(localStream);
   const hasVideo = localStream.getVideoTracks().length > 0;
 
@@ -71,8 +75,12 @@ function JoinScreen({ setReady }: JoinScreenProps) {
   const loadUserMedia = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
+        audio: userMedia.audioDeviceId
+          ? { deviceId: userMedia.audioDeviceId }
+          : true,
+        video: userMedia.videoDeviceId
+          ? { deviceId: userMedia.videoDeviceId }
+          : { facingMode: 'user' },
       });
 
       if (!userMedia.audioEnabled) {
@@ -102,12 +110,42 @@ function JoinScreen({ setReady }: JoinScreenProps) {
   };
 
   useEffect(() => {
-    loadUserMedia();
+    navigator.mediaDevices.enumerateDevices().then((devices) => {
+      const videoDevices = devices.filter(
+        (device) => device.kind === 'videoinput',
+      );
+      const audioDevices = devices.filter(
+        (device) => device.kind === 'audioinput',
+      );
+
+      setVideoDevices(videoDevices);
+      setAudioDevices(audioDevices);
+
+      if (userMedia.videoDeviceId === '' && videoDevices.length > 0) {
+        const defaultCamera = videoDevices[0];
+        console.log('default camera', defaultCamera);
+        dispatch(setVideoDeviceId(defaultCamera.deviceId));
+      }
+      if (userMedia.audioDeviceId === '' && audioDevices.length > 0) {
+        dispatch(setVideoDeviceId(audioDevices[0].deviceId));
+      }
+    });
 
     return () => {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  useEffect(() => {
+    if (videoDevices.length > 0 && audioDevices.length > 0) {
+      loadUserMedia();
+    }
+  }, [
+    userMedia.videoDeviceId,
+    userMedia.audioDeviceId,
+    videoDevices,
+    audioDevices,
+  ]);
 
   const handleAudioToggle = (turnedOn: boolean) => {
     dispatch(toggleAudio());
@@ -165,23 +203,52 @@ function JoinScreen({ setReady }: JoinScreenProps) {
               </Paper>
             )}
           </AspectRatio>
-          <Group position="center">
-            <ToggleButton
-              onIcon={<TbMicrophone size={24} />}
-              offIcon={<TbMicrophoneOff size={24} />}
-              onClick={handleAudioToggle}
-              value={userMedia.audioEnabled}
-            />
-            <ToggleButton
-              onIcon={<TbVideo size={24} />}
-              offIcon={<TbVideoOff size={24} />}
-              onClick={handleVideoToggle}
-              value={userMedia.videoEnabled}
-            />
-            <ActionIcon size="xl" radius="xl" variant="filled">
-              <TbSettings size={24} />
-            </ActionIcon>
-          </Group>
+          <Grid justify="space-between" align="center" gutter="xs">
+            <Grid.Col span={12} xs="content" orderXs={2}>
+              <Group position="center">
+                <ToggleButton
+                  onIcon={<TbMicrophone size={24} />}
+                  offIcon={<TbMicrophoneOff size={24} />}
+                  onClick={handleAudioToggle}
+                  value={userMedia.audioEnabled}
+                />
+                <ToggleButton
+                  onIcon={<TbVideo size={24} />}
+                  offIcon={<TbVideoOff size={24} />}
+                  onClick={handleVideoToggle}
+                  value={userMedia.videoEnabled}
+                />
+              </Group>
+            </Grid.Col>
+            <Grid.Col span={12} xs="auto" orderXs={1}>
+              <Select
+                icon={<TbMicrophone size={20} />}
+                placeholder="Default microphone"
+                data={audioDevices.map((d) => ({
+                  label: d.label,
+                  value: d.deviceId,
+                }))}
+                value={userMedia.audioDeviceId}
+                onChange={(v) => {
+                  if (v) dispatch(setAudioDeviceId(v));
+                }}
+              />
+            </Grid.Col>
+            <Grid.Col span={12} xs="auto" orderXs={3}>
+              <Select
+                icon={<TbVideo size={20} />}
+                placeholder="Default camera"
+                data={videoDevices.map((d) => ({
+                  label: d.label,
+                  value: d.deviceId,
+                }))}
+                value={userMedia.videoDeviceId}
+                onChange={(v) => {
+                  if (v) dispatch(setVideoDeviceId(v));
+                }}
+              />
+            </Grid.Col>
+          </Grid>
         </Stack>
         <Transition mounted={isLoading} transition="pop" timingFunction="ease">
           {(styles) => (
