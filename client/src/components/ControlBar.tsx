@@ -18,7 +18,12 @@ import {
   TbPhoneX,
   TbLink,
 } from 'react-icons/tb';
-import { selectCall, setHandRaised, toggleChatOpen } from '../state/callSlice';
+import {
+  resetCall,
+  selectCall,
+  setHandRaised,
+  toggleChatOpen,
+} from '../state/callSlice';
 import {
   selectUserMedia,
   toggleAudio,
@@ -79,6 +84,7 @@ function ControlBar({ rtcClient, onReaction }: ControlBarProps) {
   }
 
   function endCall() {
+    dispatch(resetCall());
     navigate('/');
   }
 

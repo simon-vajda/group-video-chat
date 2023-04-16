@@ -51,6 +51,7 @@ const callSlice = createSlice({
     toggleChatOpen: (state: CallState) => {
       state.chatOpen = !state.chatOpen;
     },
+    resetCall: () => initialState,
   },
 });
 
@@ -63,6 +64,7 @@ export const {
   setHandRaisedCount,
   setChatOpen,
   toggleChatOpen,
+  resetCall,
 } = callSlice.actions;
 
 export default callSlice;
