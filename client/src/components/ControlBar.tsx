@@ -1,4 +1,11 @@
-import { Group, ActionIcon, Button, Text, Menu } from '@mantine/core';
+import {
+  Group,
+  ActionIcon,
+  Button,
+  Text,
+  Menu,
+  Indicator,
+} from '@mantine/core';
 import {
   TbShare2,
   TbHandStop,
@@ -35,7 +42,7 @@ function ControlBar({ rtcClient, onReaction }: ControlBarProps) {
 
   const { id: roomId } = useParams();
   const userMedia = useSelector(selectUserMedia);
-  const { handRaised } = useSelector(selectCall);
+  const { handRaised, handRaisedCount } = useSelector(selectCall);
 
   const xs = useMediaQuery('(max-width: 20em)');
   const sm = useMediaQuery('(max-width: 24em)');
@@ -95,14 +102,23 @@ function ControlBar({ rtcClient, onReaction }: ControlBarProps) {
       )}
       <Group position="center" align="center">
         {!xs && (
-          <ActionIcon
-            size="xl"
-            variant="filled"
-            color={handRaised ? 'yellow' : 'gray'}
-            onClick={toggleHandRaised}
+          <Indicator
+            color="yellow"
+            label={handRaisedCount.toString()}
+            size={20}
+            offset={3}
+            withBorder
+            disabled={handRaisedCount === 0}
           >
-            <TbHandStop size={24} />
-          </ActionIcon>
+            <ActionIcon
+              size="xl"
+              variant="filled"
+              color={handRaised ? 'yellow' : 'gray'}
+              onClick={toggleHandRaised}
+            >
+              <TbHandStop size={24} />
+            </ActionIcon>
+          </Indicator>
         )}
         <ReactionSelector onReaction={handleReaction} />
         <ActionIcon

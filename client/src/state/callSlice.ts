@@ -12,12 +12,14 @@ export type ChatItem = {
 type CallState = {
   chatItems: ChatItem[];
   handRaised: boolean;
+  handRaisedCount: number;
   chatOpen: boolean;
 };
 
 const initialState: CallState = {
   chatItems: [],
   handRaised: false,
+  handRaisedCount: 0,
   chatOpen: false,
 };
 
@@ -37,6 +39,12 @@ const callSlice = createSlice({
     setHandRaised: (state: CallState, { payload }: PayloadAction<boolean>) => {
       state.handRaised = payload;
     },
+    setHandRaisedCount: (
+      state: CallState,
+      { payload }: PayloadAction<number>,
+    ) => {
+      state.handRaisedCount = payload;
+    },
     setChatOpen: (state: CallState, { payload }: PayloadAction<boolean>) => {
       state.chatOpen = payload;
     },
@@ -52,6 +60,7 @@ export const {
   addChatItem,
   setChatItems,
   setHandRaised,
+  setHandRaisedCount,
   setChatOpen,
   toggleChatOpen,
 } = callSlice.actions;

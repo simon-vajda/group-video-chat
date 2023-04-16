@@ -28,6 +28,7 @@ import {
   selectCall,
   setChatItems,
   setChatOpen,
+  setHandRaisedCount,
 } from '../state/callSlice';
 import { ChatItem } from '../state/callSlice';
 import ControlBar from './ControlBar';
@@ -185,7 +186,9 @@ function CallPage() {
             newPeers.set(peer.id, peer);
           });
 
+          const handRaisedCount = peerList.filter((p) => p.handRaised).length;
           dispatch(setChatItems(messageList));
+          dispatch(setHandRaisedCount(handRaisedCount));
 
           return newPeers;
         });
@@ -286,6 +289,11 @@ function CallPage() {
         }
         newPeers.set(peerId, peer);
       }
+
+      const handRaisedCount = Array.from(newPeers.values()).filter(
+        (p) => p.handRaised,
+      ).length;
+      dispatch(setHandRaisedCount(handRaisedCount));
 
       return newPeers;
     });
