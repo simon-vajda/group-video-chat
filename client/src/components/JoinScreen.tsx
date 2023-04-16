@@ -187,7 +187,7 @@ function JoinScreen({ setReady }: JoinScreenProps) {
 
   return (
     <Container size="sm" h="100%">
-      <Stack h="100%" justify="center" spacing={40}>
+      <Stack h="100%" justify="center" spacing="xs">
         <Stack spacing="sm">
           <AspectRatio ratio={16 / 9}>
             {userMedia.videoEnabled && hasVideo ? (
@@ -220,39 +220,45 @@ function JoinScreen({ setReady }: JoinScreenProps) {
                 />
               </Group>
             </Grid.Col>
-            <Grid.Col span={12} xs="auto" orderXs={1}>
-              <Select
-                icon={<TbMicrophone size={20} />}
-                placeholder="Default microphone"
-                data={audioDevices.map((d) => ({
-                  label: d.label,
-                  value: d.deviceId,
-                }))}
-                value={userMedia.audioDeviceId}
-                onChange={(v) => {
-                  if (v) dispatch(setAudioDeviceId(v));
-                }}
-              />
-            </Grid.Col>
-            <Grid.Col span={12} xs="auto" orderXs={3}>
-              <Select
-                icon={<TbVideo size={20} />}
-                placeholder="Default camera"
-                data={videoDevices.map((d) => ({
-                  label: d.label,
-                  value: d.deviceId,
-                }))}
-                value={userMedia.videoDeviceId}
-                onChange={(v) => {
-                  if (v) dispatch(setVideoDeviceId(v));
-                }}
-              />
-            </Grid.Col>
+            {videoDevices.length > 0 && audioDevices.length > 0 && (
+              <>
+                <Grid.Col span={12} xs="auto" orderXs={1}>
+                  <Select
+                    icon={<TbMicrophone size={20} />}
+                    placeholder="Default microphone"
+                    size="md"
+                    data={audioDevices.map((d) => ({
+                      label: d.label,
+                      value: d.deviceId,
+                    }))}
+                    value={userMedia.audioDeviceId}
+                    onChange={(v) => {
+                      if (v) dispatch(setAudioDeviceId(v));
+                    }}
+                  />
+                </Grid.Col>
+                <Grid.Col span={12} xs="auto" orderXs={3}>
+                  <Select
+                    icon={<TbVideo size={20} />}
+                    placeholder="Default camera"
+                    size="md"
+                    data={videoDevices.map((d) => ({
+                      label: d.label,
+                      value: d.deviceId,
+                    }))}
+                    value={userMedia.videoDeviceId}
+                    onChange={(v) => {
+                      if (v) dispatch(setVideoDeviceId(v));
+                    }}
+                  />
+                </Grid.Col>
+              </>
+            )}
           </Grid>
         </Stack>
         <Transition mounted={isLoading} transition="pop" timingFunction="ease">
           {(styles) => (
-            <Center style={styles}>
+            <Center style={styles} mt="lg">
               <Loader />
             </Center>
           )}
@@ -273,6 +279,7 @@ function JoinScreen({ setReady }: JoinScreenProps) {
                     icon={<TbUserCircle size={24} />}
                     size="md"
                     maxLength={30}
+                    autoFocus
                   />
                 )}
                 <Button
@@ -280,6 +287,7 @@ function JoinScreen({ setReady }: JoinScreenProps) {
                   size="md"
                   type="submit"
                   leftIcon={<TbLogin size={20} />}
+                  mt="lg"
                 >
                   {user.token ? `Join as ${user.name}` : `Join`}
                 </Button>
@@ -294,7 +302,7 @@ function JoinScreen({ setReady }: JoinScreenProps) {
         >
           {(styles) => (
             <Center style={styles}>
-              <Stack align="center" spacing={0}>
+              <Stack align="center" spacing={0} mt="lg">
                 <Title order={3}>Room not found</Title>
                 <Text c="dimmed" size="lg">
                   Please check the room ID
@@ -306,7 +314,7 @@ function JoinScreen({ setReady }: JoinScreenProps) {
         <Transition mounted={isError} transition="pop" timingFunction="ease">
           {(styles) => (
             <Center style={styles}>
-              <Stack align="center" spacing={0}>
+              <Stack align="center" spacing={0} mt="lg">
                 <Title order={3}>Network error</Title>
                 <Text c="dimmed" size="lg">
                   Please check your internet connection
