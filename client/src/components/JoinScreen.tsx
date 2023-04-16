@@ -73,6 +73,7 @@ function JoinScreen({ setReady }: JoinScreenProps) {
   } = useCheckRoomQuery(roomId!);
 
   const loadUserMedia = async () => {
+    stopLocalStream();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: userMedia.audioDeviceId
@@ -83,18 +84,8 @@ function JoinScreen({ setReady }: JoinScreenProps) {
           : { facingMode: 'user' },
       });
 
-      if (!userMedia.audioEnabled) {
-        stream.getAudioTracks().forEach((track) => {
-          track.enabled = false;
-        });
-      }
-
-      if (!userMedia.videoEnabled) {
-        stream.getVideoTracks().forEach((track) => {
-          track.enabled = false;
-        });
-      }
-
+      dispatch(setAudioEnabled(true));
+      dispatch(setVideoEnabled(true));
       setLocalStream(stream);
       localStreamRef.current = stream;
     } catch (err) {
@@ -132,7 +123,7 @@ function JoinScreen({ setReady }: JoinScreenProps) {
     });
 
     return () => {
-      localStreamRef.current.getTracks().forEach((track) => track.stop());
+      stopLocalStream();
     };
   }, []);
 
@@ -146,6 +137,10 @@ function JoinScreen({ setReady }: JoinScreenProps) {
     videoDevices,
     audioDevices,
   ]);
+
+  function stopLocalStream() {
+    localStreamRef.current.getTracks().forEach((track) => track.stop());
+  }
 
   const handleAudioToggle = (turnedOn: boolean) => {
     dispatch(toggleAudio());
