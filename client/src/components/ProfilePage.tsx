@@ -14,8 +14,8 @@ import {
   Title,
 } from '@mantine/core';
 import Layout from './Layout';
-import { useSelector } from 'react-redux';
-import { selectUser } from '../state/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectUser, setUsername } from '../state/userSlice';
 import { useForm } from '@mantine/form';
 import { TbArrowBarUp, TbCheck, TbLogin } from 'react-icons/tb';
 import { useEffect } from 'react';
@@ -25,6 +25,7 @@ import { useUpdateAccountMutation } from '../api/accountApi';
 
 function ProfilePage() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const [updateAccount, { isLoading }] = useUpdateAccountMutation();
 
@@ -59,23 +60,36 @@ function ProfilePage() {
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const { name, newPassword, newPasswordAgain, currentPassword } =
+      form.values;
     form.validate();
-    if (form.values.newPassword !== form.values.newPasswordAgain) {
-      form.setFieldError('passwordAgain', 'Passwords do not match');
+    if (newPassword !== newPasswordAgain) {
+      form.setFieldError('newPasswordAgain', 'Passwords do not match');
       return;
     }
 
     if (!form.isValid()) return;
 
-    updateAccount({ body: form.values, token: user.token })
+    const body = {
+      name: name || undefined,
+      newPassword: newPassword || undefined,
+      currentPassword: currentPassword,
+    };
+    updateAccount({ body, token: user.token })
       .unwrap()
       .then(() => {
+        if (name && name !== user.name) {
+          dispatch(setUsername(name));
+        }
+
         notifications.show({
           title: 'Account updated',
           message: 'Your account has been updated',
           color: 'green',
           icon: <TbCheck size={20} />,
         });
+
+        form.reset();
       })
       .catch((response) => {
         if (response.status === 401) {
@@ -94,7 +108,7 @@ function ProfilePage() {
         icon: <TbLogin size={20} />,
       });
     }
-  }, []);
+  }, [user]);
 
   return (
     <Layout>

@@ -14,11 +14,19 @@ import { useForm } from '@mantine/form';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLoginMutation } from '../api/authApi';
 import { useDispatch, useSelector } from 'react-redux';
-import { JwtPayload, logout, selectUser, setUser } from '../state/userSlice';
+import { logout, selectUser, setUser } from '../state/userSlice';
 import { useEffect } from 'react';
 import jwtDecode from 'jwt-decode';
 import { notifications } from '@mantine/notifications';
 import { TbLogout } from 'react-icons/tb';
+
+interface JwtPayload {
+  id: string;
+  name: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
 
 function LoginPage() {
   const location = useLocation();
@@ -47,8 +55,16 @@ function LoginPage() {
       login(form.values)
         .unwrap()
         .then(({ token }) => {
-          dispatch(setUser(token));
-          const { exp } = jwtDecode<JwtPayload>(token);
+          const { id, name, email, exp } = jwtDecode<JwtPayload>(token);
+          dispatch(
+            setUser({
+              id,
+              name,
+              email,
+              token,
+            }),
+          );
+
           if (exp) {
             const expires = new Date(exp * 1000);
             setTimeout(() => {

@@ -50,7 +50,11 @@ interface JoinScreenProps {
 function JoinScreen({ setReady }: JoinScreenProps) {
   const { id: roomId } = useParams();
 
-  const [name, setName] = useState('');
+  const dispatch = useDispatch();
+  const userMedia = useSelector(selectUserMedia);
+  const user = useSelector(selectUser);
+
+  const [name, setName] = useState(user.name);
   const [localStream, setLocalStream] = useState<MediaStream>(
     new MediaStream(),
   );
@@ -58,10 +62,6 @@ function JoinScreen({ setReady }: JoinScreenProps) {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const localStreamRef = useRef(localStream);
   const hasVideo = localStream.getVideoTracks().length > 0;
-
-  const dispatch = useDispatch();
-  const userMedia = useSelector(selectUserMedia);
-  const user = useSelector(selectUser);
 
   useMuter(localStream);
 
