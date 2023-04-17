@@ -56,33 +56,33 @@ function SignUpPage() {
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     form.validate();
+    if (form.values.password !== form.values.passwordAgain) {
+      form.setFieldError('passwordAgain', 'Passwords do not match');
+      return;
+    }
 
     if (!form.isValid()) return;
 
-    if (form.values.password !== form.values.passwordAgain) {
-      form.setFieldError('passwordAgain', 'Passwords do not match');
-    } else {
-      signup({
-        name: form.values.name,
-        email: form.values.email,
-        password: form.values.password,
-      })
-        .unwrap()
-        .then(() => {
-          notifications.show({
-            title: 'Success',
-            message: 'You have successfully signed up',
-            color: 'teal',
-            icon: <TbCheck size={20} />,
-          });
-          navigate('/login', { state: { email: form.values.email } });
-        })
-        .catch((error) => {
-          if (error.status === 409) {
-            form.setFieldError('email', 'Email already in use');
-          }
+    signup({
+      name: form.values.name,
+      email: form.values.email,
+      password: form.values.password,
+    })
+      .unwrap()
+      .then(() => {
+        notifications.show({
+          title: 'Success',
+          message: 'You have successfully signed up',
+          color: 'teal',
+          icon: <TbCheck size={20} />,
         });
-    }
+        navigate('/login', { state: { email: form.values.email } });
+      })
+      .catch((error) => {
+        if (error.status === 409) {
+          form.setFieldError('email', 'Email already in use');
+        }
+      });
   }
 
   useEffect(() => {

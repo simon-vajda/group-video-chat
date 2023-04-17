@@ -8,7 +8,7 @@ import {
   MediaQuery,
 } from '@mantine/core';
 import { useState } from 'react';
-import { TbSettings, TbLogout, TbUser } from 'react-icons/tb';
+import { TbLogout, TbUser } from 'react-icons/tb';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { logout, selectUser } from '../state/userSlice';
