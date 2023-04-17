@@ -17,20 +17,22 @@ import Layout from './Layout';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../state/userSlice';
 import { useForm } from '@mantine/form';
-import { TbArrowBarUp, TbLogin } from 'react-icons/tb';
+import { TbArrowBarUp, TbCheck, TbLogin } from 'react-icons/tb';
 import { useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
+import { useUpdateAccountMutation } from '../api/accountApi';
 
 function ProfilePage() {
   const navigate = useNavigate();
   const user = useSelector(selectUser);
+  const [updateAccount, { isLoading }] = useUpdateAccountMutation();
 
   const form = useForm({
     initialValues: {
       name: user.name,
-      password: '',
-      passwordAgain: '',
+      newPassword: '',
+      newPasswordAgain: '',
       currentPassword: '',
     },
     validate: {
@@ -40,7 +42,7 @@ function ProfilePage() {
           ? 'Name must be at least 3 characters long'
           : null;
       },
-      password: (value) => {
+      newPassword: (value) => {
         if (!value) return null;
 
         if (value.length < 8) {
@@ -58,14 +60,28 @@ function ProfilePage() {
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     form.validate();
-    if (form.values.password !== form.values.passwordAgain) {
+    if (form.values.newPassword !== form.values.newPasswordAgain) {
       form.setFieldError('passwordAgain', 'Passwords do not match');
       return;
     }
 
     if (!form.isValid()) return;
 
-    console.log(form.values);
+    updateAccount({ body: form.values, token: user.token })
+      .unwrap()
+      .then(() => {
+        notifications.show({
+          title: 'Account updated',
+          message: 'Your account has been updated',
+          color: 'green',
+          icon: <TbCheck size={20} />,
+        });
+      })
+      .catch((response) => {
+        if (response.status === 401) {
+          form.setFieldError('currentPassword', 'Incorrect password');
+        }
+      });
   }
 
   useEffect(() => {
@@ -123,13 +139,13 @@ function ProfilePage() {
               label="New password"
               placeholder="New password"
               size="md"
-              {...form.getInputProps('password')}
+              {...form.getInputProps('newPassword')}
             />
             <PasswordInput
               label="New password again"
               placeholder="New password again"
               size="md"
-              {...form.getInputProps('passwordAgain')}
+              {...form.getInputProps('newPasswordAgain')}
             />
 
             <PasswordInput
@@ -146,8 +162,9 @@ function ProfilePage() {
               leftIcon={<TbArrowBarUp size={20} />}
               disabled={
                 !form.values.currentPassword ||
-                (!form.values.name && !form.values.password)
+                (!form.values.name && !form.values.newPassword)
               }
+              loading={isLoading}
             >
               Update profile
             </Button>
