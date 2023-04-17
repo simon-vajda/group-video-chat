@@ -16,9 +16,13 @@ import Layout from './Layout';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../state/userSlice';
 import { useForm } from '@mantine/form';
-import { TbArrowBarUp } from 'react-icons/tb';
+import { TbArrowBarUp, TbLogin } from 'react-icons/tb';
+import { useEffect } from 'react';
+import { notifications } from '@mantine/notifications';
+import { useNavigate } from 'react-router-dom';
 
 function ProfilePage() {
+  const navigate = useNavigate();
   const user = useSelector(selectUser);
 
   const form = useForm({
@@ -63,6 +67,18 @@ function ProfilePage() {
     console.log(form.values);
   }
 
+  useEffect(() => {
+    if (!user.token) {
+      navigate('/login', { replace: true });
+      notifications.show({
+        title: 'Authentication needed',
+        message: 'Please log in to view this page',
+        color: 'yellow',
+        icon: <TbLogin size={20} />,
+      });
+    }
+  }, []);
+
   return (
     <Layout>
       <Container size="sm">
@@ -76,7 +92,7 @@ function ProfilePage() {
                 ml="sm"
                 mr="sm"
               >
-                {user.name[0].toUpperCase()}
+                {user.name[0]?.toUpperCase()}
               </Avatar>
             </Center>
           </Grid.Col>
