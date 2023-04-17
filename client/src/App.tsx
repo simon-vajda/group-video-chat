@@ -7,6 +7,7 @@ import HomePage from './components/HomePage';
 import { Notifications } from '@mantine/notifications';
 import LoginPage from './components/LoginPage';
 import SignUpPage from './components/SignUpPage';
+import ProfilePage from './components/ProfilePage';
 
 function App() {
   const router = createBrowserRouter([
@@ -18,7 +19,7 @@ function App() {
           element: <HomePage />,
         },
         {
-          path: 'room/:id',
+          path: '/room/:id',
           element: <Room />,
         },
         {
@@ -26,8 +27,12 @@ function App() {
           element: <LoginPage />,
         },
         {
-          path: 'signup',
+          path: '/signup',
           element: <SignUpPage />,
+        },
+        {
+          path: '/profile',
+          element: <ProfilePage />,
         },
       ],
     },

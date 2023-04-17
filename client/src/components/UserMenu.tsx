@@ -64,9 +64,6 @@ function UserMenu() {
             </MediaQuery>
           </Menu.Item>
         </Link>
-        <Menu.Item icon={<TbSettings size={14} />} component="a" href="#">
-          Settings
-        </Menu.Item>
         <Menu.Divider />
         <Menu.Item
           icon={<TbLogout size={14} />}
