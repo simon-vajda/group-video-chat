@@ -52,6 +52,36 @@ type ChatBubbleProps = {
 
 const SESSION_TIMEOUT = 120000;
 
+function replaceUrlsWithLinks(text: string): JSX.Element[] {
+  const results: JSX.Element[] = [];
+  const urlRegex =
+    /(https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)/gm;
+
+  let match;
+  let lastIndex = 0;
+  while ((match = urlRegex.exec(text)) !== null) {
+    results.push(<>{text.substring(lastIndex, match.index)}</>);
+    results.push(
+      <a
+        href={match[0]}
+        target="_blank"
+        rel="noreferrer"
+        style={{
+          color: 'inherit',
+          font: 'inherit',
+          textDecoration: 'underline 1px',
+        }}
+      >
+        {match[0]}
+      </a>,
+    );
+    lastIndex = urlRegex.lastIndex;
+  }
+  results.push(<>{text.substring(lastIndex)}</>);
+
+  return results;
+}
+
 function ChatBubble({ chatItem, prevItem, nextItem }: ChatBubbleProps) {
   const theme = useMantineTheme();
 
@@ -117,7 +147,7 @@ function ChatBubble({ chatItem, prevItem, nextItem }: ChatBubbleProps) {
                 overflowWrap: 'break-word',
               }}
             >
-              {chatItem.message}
+              {replaceUrlsWithLinks(chatItem.message)}
             </Text>
           </Paper>
         </Tooltip>
