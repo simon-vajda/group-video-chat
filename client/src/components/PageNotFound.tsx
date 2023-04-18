@@ -1,12 +1,4 @@
-import {
-  Box,
-  Center,
-  Container,
-  Stack,
-  Text,
-  Title,
-  useMantineTheme,
-} from '@mantine/core';
+import { Box, Center, Container, Title, useMantineTheme } from '@mantine/core';
 import Layout from './Layout';
 import { useMediaQuery } from '@mantine/hooks';
 
