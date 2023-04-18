@@ -139,7 +139,6 @@ function HomePage() {
         </Text>
         <Stack mt={52} spacing={theme.spacing.xl}>
           <Button
-            variant="gradient"
             gradient={{ from: 'indigo', to: 'cyan' }}
             size="md"
             leftIcon={<TbVideoPlus size={22} />}
