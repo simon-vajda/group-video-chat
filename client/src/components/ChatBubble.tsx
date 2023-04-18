@@ -55,7 +55,7 @@ const SESSION_TIMEOUT = 120000;
 function replaceUrlsWithLinks(text: string): JSX.Element[] {
   const results: JSX.Element[] = [];
   const urlRegex =
-    /(https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)/gm;
+    /(https?:\/\/)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\\+.~#?&\\/\\/=]*)/gm;
 
   let match;
   let lastIndex = 0;
