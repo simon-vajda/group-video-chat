@@ -8,11 +8,12 @@ import { Notifications } from '@mantine/notifications';
 import LoginPage from './components/LoginPage';
 import SignUpPage from './components/SignUpPage';
 import ProfilePage from './components/ProfilePage';
+import PageNotFound from './components/PageNotFound';
 
 function App() {
   const router = createBrowserRouter([
     {
-      errorElement: <h1>404</h1>,
+      errorElement: <PageNotFound />,
       children: [
         {
           path: '/',
