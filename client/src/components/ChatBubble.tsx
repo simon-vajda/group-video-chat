@@ -90,6 +90,7 @@ function ChatBubble({ chatItem, prevItem, nextItem }: ChatBubbleProps) {
               marginTop: sessionStart ? 0 : 6,
               marginBottom: 2,
               whiteSpace: 'pre-wrap',
+              overflowWrap: 'break-word',
             }}
           >
             {chatItem.author}
@@ -113,6 +114,7 @@ function ChatBubble({ chatItem, prevItem, nextItem }: ChatBubbleProps) {
               align="start"
               sx={{
                 whiteSpace: 'pre-wrap',
+                overflowWrap: 'break-word',
               }}
             >
               {chatItem.message}
