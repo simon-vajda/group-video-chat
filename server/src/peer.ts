@@ -17,6 +17,7 @@ const RTCConfig = {
 class Peer {
   id: string;
   connection: RTCPeerConnection;
+  candidateBuffer: RTCIceCandidate[] = [];
   socket: Socket;
   makingOffer = false;
   name: string;
@@ -88,7 +89,11 @@ class Peer {
   async onCandidateReceived(candidate) {
     logger.trace(`Candidate from: ${this}`);
     try {
-      await this.connection.addIceCandidate(candidate);
+      if (this.connection.remoteDescription) {
+        await this.connection.addIceCandidate(candidate);
+      } else {
+        this.candidateBuffer.push(candidate);
+      }
     } catch (err) {
       logger.warn(err);
       logger.warn(candidate, 'Add ice candidate failed');
@@ -114,6 +119,17 @@ class Peer {
     await this.connection.setLocalDescription(answer);
     this.socket.emit('answer', answer);
     logger.trace(`Answer sent to: ${this}`);
+
+    while (this.candidateBuffer.length) {
+      const candidate = this.candidateBuffer.shift();
+      if (candidate) {
+        try {
+          await this.connection.addIceCandidate(candidate);
+        } catch (err) {
+          console.error('Add ice candidate error', err, candidate);
+        }
+      }
+    }
   }
 
   toString() {

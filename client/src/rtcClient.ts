@@ -75,13 +75,16 @@ class RtcClient {
     this.socket.emit('answer', answer);
     console.log('Sending answer', answer);
 
-    this.candidateBuffer.forEach((candidate) => {
-      try {
-        this.connection.addIceCandidate(candidate);
-      } catch (err) {
-        console.error('Add ice candidate error', err, candidate);
+    while (this.candidateBuffer.length) {
+      const candidate = this.candidateBuffer.shift();
+      if (candidate) {
+        try {
+          await this.connection.addIceCandidate(candidate);
+        } catch (err) {
+          console.error('Add ice candidate error', err, candidate);
+        }
       }
-    });
+    }
   }
 
   async onAnswerReceived(answer: RTCSessionDescriptionInit) {
