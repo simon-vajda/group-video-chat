@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
-import { createRoom, roomExists } from '../socket';
+import { createRoom, roomExists } from '../roomManager';
 import { authenticate } from './authRoute';
 
 interface RoomRequest extends FastifyRequest {

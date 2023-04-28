@@ -5,7 +5,7 @@ import cors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
 import pino from 'pino';
 import { join } from 'path';
-import { handleConnection } from './socket';
+import { handleConnection } from './roomManager';
 import { AppDataSource } from './dataSource';
 
 const secret = process.env.JWT_SECRET || 'supersecretkey';
