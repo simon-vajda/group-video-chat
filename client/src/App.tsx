@@ -99,7 +99,7 @@ function App() {
 
 export function getServerUrl() {
   return !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
-    ? 'http://localhost:15000'
+    ? 'http://localhost:5000'
     : '';
 }
 

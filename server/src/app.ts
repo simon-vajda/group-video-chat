@@ -52,7 +52,7 @@ fastify.ready().then(() => {
   fastify.io.on('connection', handleConnection);
 });
 
-fastify.listen({ port: 15000, host: '0.0.0.0' }, (err, address) => {
+fastify.listen({ port: 5000, host: '0.0.0.0' }, (err, address) => {
   if (err) {
     logger.fatal(err);
     process.exit(1);
