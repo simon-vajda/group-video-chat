@@ -20,7 +20,7 @@ import jwtDecode from 'jwt-decode';
 import { notifications } from '@mantine/notifications';
 import { TbLogout } from 'react-icons/tb';
 
-interface JwtPayload {
+export interface JwtPayload {
   id: string;
   name: string;
   email: string;

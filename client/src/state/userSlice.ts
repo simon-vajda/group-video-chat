@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from './store';
+import jwtDecode from 'jwt-decode';
+import { JwtPayload } from '../components/LoginPage';
 
 interface UserState {
   id: string;
@@ -20,6 +22,13 @@ function getInitialState(): UserState {
   if (jsonState) {
     try {
       const userState = JSON.parse(jsonState) as UserState;
+      const { exp } = jwtDecode<JwtPayload>(userState.token);
+
+      if (exp && Date.now() >= exp * 1000) {
+        localStorage.removeItem('user');
+        return emptyState;
+      }
+
       return userState;
     } catch (e) {}
   }
