@@ -100,27 +100,37 @@ function JoinScreen({ setReady }: JoinScreenProps) {
     }
   };
 
+  const loadMediaDevices = async () => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(
+      (device) => device.kind === 'videoinput',
+    );
+    const audioDevices = devices.filter(
+      (device) => device.kind === 'audioinput',
+    );
+
+    setVideoDevices(videoDevices);
+    setAudioDevices(audioDevices);
+  };
+
+  const init = async () => {
+    await loadUserMedia();
+    await loadMediaDevices();
+
+    if (userMedia.videoDeviceId === '' && videoDevices.length > 0) {
+      const defaultCamera = videoDevices[0];
+      console.log('default camera', defaultCamera);
+      dispatch(setVideoDeviceId(defaultCamera.deviceId));
+    }
+    if (userMedia.audioDeviceId === '' && audioDevices.length > 0) {
+      const defaultMic = audioDevices[0];
+      console.log('default mic', defaultMic);
+      dispatch(setVideoDeviceId(defaultMic.deviceId));
+    }
+  };
+
   useEffect(() => {
-    navigator.mediaDevices.enumerateDevices().then((devices) => {
-      const videoDevices = devices.filter(
-        (device) => device.kind === 'videoinput',
-      );
-      const audioDevices = devices.filter(
-        (device) => device.kind === 'audioinput',
-      );
-
-      setVideoDevices(videoDevices);
-      setAudioDevices(audioDevices);
-
-      if (userMedia.videoDeviceId === '' && videoDevices.length > 0) {
-        const defaultCamera = videoDevices[0];
-        console.log('default camera', defaultCamera);
-        dispatch(setVideoDeviceId(defaultCamera.deviceId));
-      }
-      if (userMedia.audioDeviceId === '' && audioDevices.length > 0) {
-        dispatch(setVideoDeviceId(audioDevices[0].deviceId));
-      }
-    });
+    init();
 
     return () => {
       stopLocalStream();
@@ -128,15 +138,8 @@ function JoinScreen({ setReady }: JoinScreenProps) {
   }, []);
 
   useEffect(() => {
-    if (videoDevices.length > 0 && audioDevices.length > 0) {
-      loadUserMedia();
-    }
-  }, [
-    userMedia.videoDeviceId,
-    userMedia.audioDeviceId,
-    videoDevices,
-    audioDevices,
-  ]);
+    loadUserMedia();
+  }, [userMedia.videoDeviceId, userMedia.audioDeviceId]);
 
   function stopLocalStream() {
     localStreamRef.current.getTracks().forEach((track) => track.stop());
@@ -215,40 +218,38 @@ function JoinScreen({ setReady }: JoinScreenProps) {
                 />
               </Group>
             </Grid.Col>
-            {videoDevices.length > 0 && audioDevices.length > 0 && (
-              <>
-                <Grid.Col span={12} xs="auto" orderXs={1}>
-                  <Select
-                    icon={<TbMicrophone size={20} />}
-                    placeholder="Default microphone"
-                    size="md"
-                    data={audioDevices.map((d) => ({
-                      label: d.label,
-                      value: d.deviceId,
-                    }))}
-                    value={userMedia.audioDeviceId}
-                    onChange={(v) => {
-                      if (v) dispatch(setAudioDeviceId(v));
-                    }}
-                  />
-                </Grid.Col>
-                <Grid.Col span={12} xs="auto" orderXs={3}>
-                  <Select
-                    icon={<TbVideo size={20} />}
-                    placeholder="Default camera"
-                    size="md"
-                    data={videoDevices.map((d) => ({
-                      label: d.label,
-                      value: d.deviceId,
-                    }))}
-                    value={userMedia.videoDeviceId}
-                    onChange={(v) => {
-                      if (v) dispatch(setVideoDeviceId(v));
-                    }}
-                  />
-                </Grid.Col>
-              </>
-            )}
+            <Grid.Col span={12} xs="auto" orderXs={1}>
+              <Select
+                icon={<TbMicrophone size={20} />}
+                placeholder="Default microphone"
+                size="md"
+                data={audioDevices.map((d) => ({
+                  label: d.label,
+                  value: d.deviceId,
+                }))}
+                value={userMedia.audioDeviceId}
+                onChange={(v) => {
+                  if (v) dispatch(setAudioDeviceId(v));
+                }}
+                onDropdownOpen={() => loadMediaDevices()}
+              />
+            </Grid.Col>
+            <Grid.Col span={12} xs="auto" orderXs={3}>
+              <Select
+                icon={<TbVideo size={20} />}
+                placeholder="Default camera"
+                size="md"
+                data={videoDevices.map((d) => ({
+                  label: d.label,
+                  value: d.deviceId,
+                }))}
+                value={userMedia.videoDeviceId}
+                onChange={(v) => {
+                  if (v) dispatch(setVideoDeviceId(v));
+                }}
+                onDropdownOpen={() => loadMediaDevices()}
+              />
+            </Grid.Col>
           </Grid>
         </Stack>
         <Transition mounted={isLoading} transition="pop" timingFunction="ease">
