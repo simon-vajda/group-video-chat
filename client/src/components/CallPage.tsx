@@ -161,6 +161,7 @@ function CallPage() {
         });
         return newOwners;
       });
+      onReaction('hand-down', peerId);
     });
 
     socket.on('peer-joined', (id: string, name: string, index: number) => {
