@@ -116,7 +116,9 @@ function CallPage() {
       setStreamOwners((prev) => new Map(prev).set(media.id, 'local'));
       localStreamRef.current = media;
     } catch (err) {
-      console.error('Failed to get local stream', err);
+      console.error('Failed to get local stream');
+      pc.addTransceiver('audio', { direction: 'recvonly' });
+      pc.addTransceiver('video', { direction: 'recvonly' });
     } finally {
       setLoading(false);
     }
