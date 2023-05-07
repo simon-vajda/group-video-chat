@@ -5,8 +5,6 @@ services:
     container_name: chat-client
     image: simon-vajda/chat-client
     build: ./client
-    ports:
-      - 3000:80
     depends_on:
       - server
     restart: always
@@ -15,8 +13,6 @@ services:
     container_name: chat-server
     image: simon-vajda/chat-server
     build: ./server
-    ports:
-      - 5000:5000
     env_file:
       - .env
     depends_on:
@@ -42,7 +38,7 @@ services:
     image: simon-vajda/chat-proxy
     build: ./proxy
     ports:
-      - 80:80
+      - 8080:80
     depends_on:
       - client
       - server
