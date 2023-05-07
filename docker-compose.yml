@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  client:
+    container_name: chat-client
+    image: simon-vajda/chat-client
+    build: ./client
+    ports:
+      - 3000:80
+    depends_on:
+      - server
+    restart: always
+
+  server:
+    container_name: chat-server
+    image: simon-vajda/chat-server
+    build: ./server
+    ports:
+      - 5000:5000
+    env_file:
+      - .env
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    container_name: chat-postgres
+    image: postgres:14
+    env_file:
+      - .env
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+      PG_DATA: /var/lib/postgresql/data
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  proxy:
+    container_name: chat-proxy
+    image: simon-vajda/chat-proxy
+    build: ./proxy
+    ports:
+      - 80:80
+    depends_on:
+      - client
+      - server
+    restart: always
+
+volumes:
+  pgdata:
