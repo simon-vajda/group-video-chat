@@ -13,6 +13,7 @@ class Room {
   peers: Map<string, Peer>;
   streams: Map<string, MediaStream>;
   messages: ChatItem[];
+  nextIndex: number;
   onCallEnded: () => void;
 
   constructor() {
@@ -20,10 +21,11 @@ class Room {
     this.peers = new Map();
     this.streams = new Map();
     this.messages = [];
+    this.nextIndex = 0;
   }
 
   addPeer(peer: Peer) {
-    peer.index = this.peers.size;
+    peer.index = this.nextIndex++;
     this.sendRoomStateTo(peer);
     this.peers.set(peer.id, peer);
     peer.connection.ontrack = (event) => this.onTrack(event, peer);
