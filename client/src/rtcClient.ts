@@ -32,7 +32,7 @@ class RtcClient {
     this.socket.on('icecandidate', (e) => this.onIceCandidateReceived(e));
   }
 
-  async sendOffer() {
+  private async sendOffer() {
     try {
       this.makingOffer = true;
       await this.connection.setLocalDescription();
@@ -45,22 +45,22 @@ class RtcClient {
     }
   }
 
-  async onNegotiationNeeded() {
+  private async onNegotiationNeeded() {
     await this.sendOffer();
   }
 
-  onIceCandidate(iceCandidate: RTCIceCandidate | null) {
+  private onIceCandidate(iceCandidate: RTCIceCandidate | null) {
     if (iceCandidate && iceCandidate.candidate !== '') {
       this.socket.emit('icecandidate', iceCandidate);
       console.log('Sending candidate', iceCandidate);
     }
   }
 
-  onConnectionStateChange() {
+  private onConnectionStateChange() {
     console.log('Connection state: ', this.connection.connectionState);
   }
 
-  async onOfferReceived(offer: RTCSessionDescriptionInit) {
+  private async onOfferReceived(offer: RTCSessionDescriptionInit) {
     const offerCollision =
       this.makingOffer || this.connection.signalingState !== 'stable';
     if (offerCollision) return;
@@ -87,12 +87,12 @@ class RtcClient {
     }
   }
 
-  async onAnswerReceived(answer: RTCSessionDescriptionInit) {
+  private async onAnswerReceived(answer: RTCSessionDescriptionInit) {
     await this.connection.setRemoteDescription(answer);
     console.log('Answer received', answer);
   }
 
-  async onIceCandidateReceived(candidate: RTCIceCandidate) {
+  private async onIceCandidateReceived(candidate: RTCIceCandidate) {
     try {
       if (this.connection.remoteDescription) {
         await this.connection.addIceCandidate(candidate);

@@ -42,22 +42,22 @@ class Peer {
     this.socket.on('offer', (e) => this.onOfferReceived(e));
   }
 
-  onIceCandidate(iceCandidate: RTCIceCandidate | null) {
+  private onIceCandidate(iceCandidate: RTCIceCandidate | null) {
     if (iceCandidate && iceCandidate.candidate !== '') {
       this.socket.emit('icecandidate', iceCandidate);
       logger.trace(`Candidate sent to: ${this}`);
     }
   }
 
-  async onNegotiationNeeded() {
+  private async onNegotiationNeeded() {
     await this.sendOffer();
   }
 
-  onConnectionStateChange() {
+  private onConnectionStateChange() {
     logger.trace(`Peer ${this} state: ${this.connection.connectionState}`);
   }
 
-  async sendOffer() {
+  private async sendOffer() {
     if (this.makingOffer) {
       logger.trace(`Already making offer: ${this}`);
       return;
@@ -81,12 +81,12 @@ class Peer {
     }
   }
 
-  async onAnswerReceived(answer) {
+  private async onAnswerReceived(answer) {
     logger.trace(`Answer from: ${this}`);
     await this.connection.setRemoteDescription(answer);
   }
 
-  async onCandidateReceived(candidate) {
+  private async onCandidateReceived(candidate) {
     logger.trace(`Candidate from: ${this}`);
     try {
       if (this.connection.remoteDescription) {
@@ -100,7 +100,7 @@ class Peer {
     }
   }
 
-  async onOfferReceived(offer) {
+  private async onOfferReceived(offer) {
     logger.trace(`Offer from: ${this}`);
     const offerCollision =
       this.makingOffer || this.connection.signalingState !== 'stable';

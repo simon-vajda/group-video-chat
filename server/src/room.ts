@@ -43,7 +43,7 @@ class Room {
     });
   }
 
-  onTrack(event: RTCTrackEvent, peer: Peer) {
+  private onTrack(event: RTCTrackEvent, peer: Peer) {
     const stream = event.streams[0];
     const track = event.track;
 
@@ -64,7 +64,7 @@ class Room {
     });
   }
 
-  onDisconnect(peer: Peer) {
+  private onDisconnect(peer: Peer) {
     logger.info(`Peer disconnected: ${peer}`);
     peer.socket.to(this.id).emit('peer-left', peer.id);
     peer.connection.close();
@@ -76,7 +76,7 @@ class Room {
     }
   }
 
-  sendRoomStateTo(peer: Peer) {
+  private sendRoomStateTo(peer: Peer) {
     const peers = Array.from(this.peers).map(([pId, p]) => ({
       id: p.id,
       name: p.name,
@@ -92,7 +92,7 @@ class Room {
     peer.socket.emit('room-state', peers, streamOwners, this.messages);
   }
 
-  onReaction(reaction: string, peer: Peer) {
+  private onReaction(reaction: string, peer: Peer) {
     logger.trace(`Reaction in room ${this.id} from peer: ${peer}: ${reaction}`);
 
     if (reaction === 'hand-up') peer.handRaised = true;
@@ -101,7 +101,7 @@ class Room {
     peer.socket.to(this.id).emit('reaction', reaction, peer.id);
   }
 
-  onMessage(message: string, peer: Peer) {
+  private onMessage(message: string, peer: Peer) {
     logger.trace(`Message in room ${this.id} from peer: ${peer}`);
     const chatItem = {
       authorId: peer.id,
@@ -113,7 +113,7 @@ class Room {
     this.messages.push(chatItem);
   }
 
-  generateId() {
+  private generateId() {
     const length = 6;
     let id = '';
     for (let i = 0; i < length; i++) {
