@@ -33,8 +33,8 @@ function createRoom() {
   return room.id;
 }
 
-function roomExists(roomId: string) {
+function findRoom(roomId: string) {
   return rooms.has(roomId);
 }
 
-export { handleConnection, createRoom, roomExists };
+export { handleConnection, createRoom, findRoom };

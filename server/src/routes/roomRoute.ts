@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
-import { createRoom, roomExists } from '../roomManager';
+import { createRoom, findRoom } from '../roomManager';
 import { authenticate } from './authRoute';
 
 interface RoomRequest extends FastifyRequest {
@@ -24,7 +24,7 @@ function roomRoute(fastify: FastifyInstance, opts: FastifyPluginOptions, done) {
 
   fastify.get<RoomRequest>('/:roomId', (request, reply) => {
     const { roomId } = request.params;
-    reply.send({ exists: roomExists(roomId) });
+    reply.send({ exists: findRoom(roomId) });
   });
 
   done();
