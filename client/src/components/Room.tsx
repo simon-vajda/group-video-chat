@@ -1,11 +1,11 @@
 import CallPage from './CallPage';
-import JoinScreen from './JoinScreen';
+import JoinPage from './JoinPage';
 import { useState } from 'react';
 
 function Room() {
   const [ready, setReady] = useState(false);
 
-  return ready ? <CallPage /> : <JoinScreen setReady={setReady} />;
+  return ready ? <CallPage /> : <JoinPage setReady={setReady} />;
 }
 
 export default Room;

@@ -43,11 +43,11 @@ import { useCheckRoomQuery } from '../api/roomApi';
 import { useParams } from 'react-router-dom';
 import useMuter from '../hooks/useMuter';
 
-interface JoinScreenProps {
+interface JoinPageProps {
   setReady: (ready: boolean) => void;
 }
 
-function JoinScreen({ setReady }: JoinScreenProps) {
+function JoinPage({ setReady }: JoinPageProps) {
   const { id: roomId } = useParams();
 
   const dispatch = useDispatch();
@@ -324,4 +324,4 @@ function JoinScreen({ setReady }: JoinScreenProps) {
   );
 }
 
-export default JoinScreen;
+export default JoinPage;
