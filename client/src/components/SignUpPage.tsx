@@ -19,6 +19,8 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../state/userSlice';
 import { useEffect } from 'react';
 
+const passwordRegex = /^(?=.*\D)(?=.*\d).+$/;
+
 function SignUpPage() {
   const navigate = useNavigate();
   const user = useSelector(selectUser);
@@ -40,8 +42,8 @@ function SignUpPage() {
         if (value.length < 8) {
           return 'Password must be at least 8 characters long';
         }
-        if (!/\d/.test(value)) {
-          return 'Password must contain at least one number';
+        if (!passwordRegex.test(value)) {
+          return 'Password must contain at least one number and one letter';
         }
 
         return null;
