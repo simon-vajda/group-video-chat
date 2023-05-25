@@ -48,6 +48,12 @@ const signupSchema: FastifySchema = {
     required: ['name', 'email', 'password'],
   },
 };
+const loginSchema: FastifySchema = {
+  body: {
+    type: 'object',
+    required: ['email', 'password'],
+  },
+};
 
 function authRoute(fastify: FastifyInstance, opts: FastifyPluginOptions, done) {
   fastify.post<SignupRequest>(
@@ -73,35 +79,39 @@ function authRoute(fastify: FastifyInstance, opts: FastifyPluginOptions, done) {
     },
   );
 
-  fastify.post<LoginRequest>('/login', async (request, reply) => {
-    const { email, password, keepLoggedIn } = request.body;
+  fastify.post<LoginRequest>(
+    '/login',
+    { schema: loginSchema },
+    async (request, reply) => {
+      const { email, password, keepLoggedIn } = request.body;
 
-    const user = await userRepository.findOneBy({ email });
-    if (!user) {
-      reply.code(404).send({
-        message: 'User not found',
-      });
-      return;
-    }
+      const user = await userRepository.findOneBy({ email });
+      if (!user) {
+        reply.code(404).send({
+          message: 'User not found',
+        });
+        return;
+      }
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
-      reply.code(401).send({
-        message: 'Incorrect password',
-      });
-      return;
-    }
+      const isPasswordCorrect = await bcrypt.compare(password, user.password);
+      if (!isPasswordCorrect) {
+        reply.code(401).send({
+          message: 'Incorrect password',
+        });
+        return;
+      }
 
-    const token = fastify.jwt.sign(
-      {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
-      { expiresIn: keepLoggedIn ? '7d' : '3h' },
-    );
-    reply.code(200).send({ token });
-  });
+      const token = fastify.jwt.sign(
+        {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        { expiresIn: keepLoggedIn ? '7d' : '3h' },
+      );
+      reply.code(200).send({ token });
+    },
+  );
 
   done();
 }
