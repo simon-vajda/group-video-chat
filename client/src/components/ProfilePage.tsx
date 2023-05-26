@@ -23,6 +23,8 @@ import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
 import { useUpdateAccountMutation } from '../api/accountApi';
 
+const passwordRegex = /^(?=.*\D)(?=.*\d).+$/;
+
 function ProfilePage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -49,8 +51,8 @@ function ProfilePage() {
         if (value.length < 8) {
           return 'Password must be at least 8 characters long';
         }
-        if (!/\d/.test(value)) {
-          return 'Password must contain at least one number';
+        if (!passwordRegex.test(value)) {
+          return 'Password must contain at least one number and one letter';
         }
 
         return null;

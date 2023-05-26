@@ -33,7 +33,7 @@ const updateSchema: FastifySchema = {
         type: 'string',
         minLength: 8,
         maxLength: 30,
-        pattern: '^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$',
+        pattern: '^(?=.*\\D)(?=.*\\d).+$',
       },
       currentPassword: {
         type: 'string',
