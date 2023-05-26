@@ -1,5 +1,7 @@
 # Group Video Chat
 
+As it's name suggests, this is a video conferencing web application. Authenticated users can create meeting rooms and people can join them even without an account.
+
 ## How to run
 
 ### Docker Compose
